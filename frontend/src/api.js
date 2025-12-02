@@ -2,7 +2,7 @@
  * API client for the LLM Council backend.
  */
 
-const API_BASE = 'http://localhost:8001';
+const API_BASE = 'http://localhost:2000';
 
 export const api = {
   /**
@@ -48,8 +48,11 @@ export const api = {
 
   /**
    * Send a message in a conversation.
+   * @param {string} conversationId
+   * @param {string} content
+   * @param {object} options - { mode, room, model }
    */
-  async sendMessage(conversationId, content) {
+  async sendMessage(conversationId, content, options = {}) {
     const response = await fetch(
       `${API_BASE}/api/conversations/${conversationId}/message`,
       {
@@ -57,7 +60,12 @@ export const api = {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ content }),
+        body: JSON.stringify({
+          content,
+          mode: options.mode || 'council',
+          room: options.room || 'decision',
+          model: options.model
+        }),
       }
     );
     if (!response.ok) {
@@ -70,10 +78,17 @@ export const api = {
    * Send a message and receive streaming updates.
    * @param {string} conversationId - The conversation ID
    * @param {string} content - The message content
+   * @param {object} options - { mode, room, model }
    * @param {function} onEvent - Callback function for each event: (eventType, data) => void
    * @returns {Promise<void>}
    */
-  async sendMessageStream(conversationId, content, onEvent) {
+  async sendMessageStream(conversationId, content, options = {}, onEvent) {
+    // Handle legacy signature: (id, content, onEvent)
+    if (typeof options === 'function') {
+      onEvent = options;
+      options = {};
+    }
+
     const response = await fetch(
       `${API_BASE}/api/conversations/${conversationId}/message/stream`,
       {
@@ -81,7 +96,12 @@ export const api = {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ content }),
+        body: JSON.stringify({
+          content,
+          mode: options.mode || 'council',
+          room: options.room || 'decision',
+          model: options.model
+        }),
       }
     );
 
@@ -111,5 +131,62 @@ export const api = {
         }
       }
     }
+  },
+
+  /**
+   * Delete a specific conversation.
+   */
+  async deleteConversation(conversationId) {
+    const response = await fetch(
+      `${API_BASE}/api/conversations/${conversationId}`,
+      {
+        method: 'DELETE',
+      }
+    );
+    if (!response.ok) {
+      throw new Error('Failed to delete conversation');
+    }
+    return response.json();
+  },
+
+  /**
+   * Delete all conversations.
+   */
+  async deleteAllConversations() {
+    const response = await fetch(`${API_BASE}/api/conversations`, {
+      method: 'DELETE',
+    });
+    if (!response.ok) {
+      throw new Error('Failed to delete all conversations');
+    }
+    return response.json();
+  },
+
+  /**
+   * List all available rooms.
+   */
+  async listRooms() {
+    const response = await fetch(`${API_BASE}/api/rooms`);
+    if (!response.ok) {
+      throw new Error('Failed to list rooms');
+    }
+    return response.json();
+  },
+
+  /**
+   * Detect room from prompt.
+   */
+  async detectRoom(prompt) {
+    const response = await fetch(`${API_BASE}/api/rooms/detect`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ prompt }),
+    });
+    if (!response.ok) {
+      throw new Error('Failed to detect room');
+    }
+    return response.json();
   },
 };
