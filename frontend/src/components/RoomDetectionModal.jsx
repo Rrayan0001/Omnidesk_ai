@@ -1,5 +1,14 @@
 import { Button } from "@/components/ui/button";
 import { useRoom } from "@/contexts/RoomContext";
+import { Code, BookOpen, Palette, Scale, Building2 } from 'lucide-react';
+
+const iconMap = {
+    Code: Code,
+    BookOpen: BookOpen,
+    Palette: Palette,
+    Scale: Scale,
+    Building2: Building2
+};
 
 export default function RoomDetectionModal({ detectedRoom, onProceed, onCancel }) {
     const { currentRoom, setCurrentRoom, rooms } = useRoom();
@@ -11,6 +20,8 @@ export default function RoomDetectionModal({ detectedRoom, onProceed, onCancel }
 
     if (!detected || !current) return null;
 
+    const IconComponent = iconMap[detected.icon] || Building2; // Fallback to Building2
+
     // If detected room matches current room, auto-proceed
     if (detectedRoom === currentRoom) {
         setTimeout(() => onProceed(currentRoom), 0);
@@ -21,7 +32,9 @@ export default function RoomDetectionModal({ detectedRoom, onProceed, onCancel }
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-in fade-in">
             <div className="bg-background border border-border rounded-lg shadow-2xl max-w-md w-full p-6 animate-in slide-in-from-bottom-4">
                 <div className="flex items-center gap-3 mb-4">
-                    <div className="text-4xl">{detected.icon}</div>
+                    <div className="p-3 bg-primary/10 rounded-xl text-primary">
+                        <IconComponent className="w-8 h-8" />
+                    </div>
                     <div>
                         <h3 className="text-lg font-semibold text-foreground">
                             Detected Mode

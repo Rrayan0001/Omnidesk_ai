@@ -60,3 +60,37 @@ def detect_room(prompt: str) -> str:
         return 'decision'
     
     return detected_room[0]
+
+
+# Patterns for simple queries that should bypass the full council
+SIMPLE_QUERY_PATTERNS = [
+    r'^(hi|hello|hey|hlo|hola|greetings|sup|yo)\b',  # Greetings
+    r'^(thanks|thank you|thx|tysm)\b',               # Gratitude
+    r'^(ok|okay|k|cool|nice|great|awesome)\b',       # Acknowledgments
+    r'^(bye|goodbye|cya|see ya)\b',                  # Farewells
+    r'^(test|testing|ping)\b',                       # Testing
+    r'^(what is your name|who are you)\b',           # Identity
+]
+
+def is_simple_query(prompt: str) -> bool:
+    """
+    Check if a prompt is a simple query that should be handled by a single model.
+    
+    Args:
+        prompt: User's input prompt
+        
+    Returns:
+        True if it's a simple query, False otherwise
+    """
+    prompt_lower = prompt.lower().strip()
+    
+    # Check for very short queries (less than 3 words) that match patterns
+    # or just extremely short queries in general (1-2 words) that might be garbage/simple
+    word_count = len(prompt_lower.split())
+    
+    if word_count <= 3:
+        for pattern in SIMPLE_QUERY_PATTERNS:
+            if re.search(pattern, prompt_lower, re.IGNORECASE):
+                return True
+                
+    return False

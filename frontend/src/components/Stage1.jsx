@@ -1,7 +1,13 @@
 import { useState, useMemo } from 'react';
 import ReactMarkdown from 'react-markdown';
+import { cn } from '@/lib/utils';
 
-export default function Stage1({ responses }) {
+import { TextShimmer } from '@/components/ui/text-shimmer';
+import { CodeBlockCode } from '@/components/ui/code-block';
+import { useTheme } from "@/contexts/ThemeContext";
+
+export default function Stage1({ responses, isLoading }) {
+  const { theme } = useTheme();
   const [activeTab, setActiveTab] = useState(0);
 
   // DEBUG: Check what we're receiving
@@ -39,6 +45,24 @@ export default function Stage1({ responses }) {
   }, [responses]);
 
   const modelNames = Object.keys(responsesObj);
+
+  if (isLoading && modelNames.length === 0) {
+    return (
+      <div className="w-full mb-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-xs font-sans font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-2 opacity-80">
+            <span className="w-1.5 h-1.5 rounded-full bg-primary/60"></span>
+            Perspectives
+          </h3>
+        </div>
+        <div className="bg-card border border-border/40 rounded-xl p-6 shadow-sm">
+          <TextShimmer className="text-sm font-sans">
+            Gathering initial perspectives from the council...
+          </TextShimmer>
+        </div>
+      </div>
+    );
+  }
 
   if (modelNames.length === 0) {
     return null;
@@ -78,7 +102,34 @@ export default function Stage1({ responses }) {
         {/* Content Area */}
         <div className="p-6 bg-card min-h-[150px]">
           <div className="markdown-content text-[15px] leading-relaxed text-foreground font-serif">
-            <ReactMarkdown>{currentResponse}</ReactMarkdown>
+            <ReactMarkdown
+              components={{
+                code({ node, inline, className, children, ...props }) {
+                  const match = /language-(\w+)/.exec(className || '');
+                  const language = match ? match[1] : 'text';
+
+                  if (inline) {
+                    return (
+                      <code className={cn("bg-secondary/50 px-1.5 py-0.5 rounded text-sm font-mono text-primary", className)} {...props}>
+                        {children}
+                      </code>
+                    );
+                  }
+
+                  return (
+                    <div className="not-prose my-4 rounded-xl overflow-hidden border border-border/40 bg-card">
+                      <CodeBlockCode
+                        code={String(children).replace(/\n$/, '')}
+                        language={language}
+                        theme={theme === 'dark' ? 'github-dark' : 'github-light'}
+                      />
+                    </div>
+                  );
+                }
+              }}
+            >
+              {currentResponse}
+            </ReactMarkdown>
           </div>
         </div>
       </div>

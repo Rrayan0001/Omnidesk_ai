@@ -98,7 +98,7 @@ export const api = {
         },
         body: JSON.stringify({
           content,
-          mode: options.mode || 'council',
+          mode: options.mode || 'chat',  // Default to 'chat' for faster responses
           room: options.room || 'decision',
           model: options.model
         }),

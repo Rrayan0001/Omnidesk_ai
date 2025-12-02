@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
-import { Send, Loader2, PanelLeft, Trash2, Sparkles } from 'lucide-react';
+import { Send, Loader2, PanelLeft, Trash2, Sparkles, Bot, Users, Cpu, Image as ImageIcon } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
+import { useTheme } from "@/contexts/ThemeContext";
 // import { ChatInput, ChatInputTextArea, ChatInputSubmit } from '@/components/ui/chat-input';
 import RoomDetectionModal from './RoomDetectionModal';
 import ToolsMenu from './ToolsMenu';
@@ -10,11 +11,13 @@ import Stage3 from './Stage3';
 import { cn } from '@/lib/utils';
 import { api } from '@/api';
 import { TextShimmer } from '@/components/ui/text-shimmer';
+import { CodeBlockCode } from '@/components/ui/code-block';
 
 // Import chat models for display
 const CHAT_MODELS = [
-  { id: 'llama-3.3-70b-versatile', name: 'Groq Llama 3.3 70B' },
-  { id: 'gemini-2.5-flash-preview-09-2025', name: 'Gemini 2.5 Flash' },
+  { id: 'llama-3.3-70b-versatile', name: 'Llama 3.3 70B' },
+  { id: 'llama-3.3-70b-versatile', name: 'Llama 3.3 70B' },
+  { id: 'qwen/qwen-2.5-72b-instruct', name: 'Qwen 2.5 72B' },
   { id: 'x-ai/grok-4.1-fast:free', name: 'Grok 4.1 Fast' },
   { id: 'moonshotai/kimi-k2-instruct', name: 'Moonshot Kimi K2' },
   { id: 'openai/gpt-oss-120b', name: 'GPT-OSS 120B' },
@@ -27,11 +30,23 @@ export default function ChatInterface({
   toggleSidebar,
   onDeleteConversation,
 }) {
+  const { theme } = useTheme();
   const [input, setInput] = useState('');
   const [detectedRoom, setDetectedRoom] = useState(null);
   const [pendingMessage, setPendingMessage] = useState('');
   const [isToolsMenuOpen, setIsToolsMenuOpen] = useState(false);
+  const [isHoveringSidebarToggle, setIsHoveringSidebarToggle] = useState(false);
+  const toolsButtonRef = useRef(null);
   const messagesEndRef = useRef(null);
+  const textareaRef = useRef(null);
+
+  // Auto-resize textarea when input changes
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 200)}px`;
+    }
+  }, [input]);
 
   const [currentMode, setCurrentMode] = useState('chat'); // Default: 'chat' (was 'council')
   const [currentRoom, setCurrentRoom] = useState('decision');
@@ -94,37 +109,17 @@ export default function ChatInterface({
 
   const hasMessages = conversation && conversation.messages.length > 0;
 
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      e.stopPropagation();
+      handleSubmit();
+    }
+  };
+
   return (
     <div className="flex-1 h-screen flex flex-col bg-background relative transition-colors duration-300">
-      {/* Header */}
-      <div className="h-14 border-b border-border/40 flex items-center justify-between px-4 bg-background/80 backdrop-blur-sm sticky top-0 z-20">
-        <div className="flex items-center gap-2">
-          <button
-            onClick={toggleSidebar}
-            className="p-2 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <PanelLeft className="w-5 h-5" />
-          </button>
 
-          <span className="text-sm font-serif font-medium opacity-80 ml-2 border-l border-border/40 pl-4">
-            {conversation?.title || 'New Chat'}
-          </span>
-        </div>
-
-        {conversation && (
-          <button
-            onClick={() => {
-              if (window.confirm('Delete this conversation?')) {
-                onDeleteConversation();
-              }
-            }}
-            className="p-2 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
-            title="Delete Conversation"
-          >
-            <Trash2 className="w-4 h-4" />
-          </button>
-        )}
-      </div>
 
       {/* Mode Banner */}
       {detectedRoom && (
@@ -141,13 +136,14 @@ export default function ChatInterface({
         {/* Messages or Empty State */}
         <div className="flex-1 overflow-y-auto scroll-smooth">
           {!hasMessages ? (
-            <div className="h-full flex flex-col items-center justify-center p-4 space-y-8 -mt-20">
-              <div className="w-12 h-12 bg-primary/10 text-primary rounded-xl flex items-center justify-center text-2xl shadow-sm">
-                🏛️
+            <div className="h-full flex flex-col items-center justify-center p-4 -mt-32">
+              <div className="w-20 h-20 mb-6 opacity-90">
+                <img
+                  src={theme === 'dark' ? "/logo.png" : "/logo-light.png"}
+                  alt="OmniDesk AI"
+                  className="w-full h-full object-contain"
+                />
               </div>
-              <h2 className="text-2xl md:text-3xl font-serif font-medium tracking-tight text-foreground text-center">
-                What can I help you with?
-              </h2>
             </div>
           ) : (
             <div className="max-w-3xl mx-auto p-4 md:p-8 space-y-8 pb-32">
@@ -158,7 +154,7 @@ export default function ChatInterface({
                 >
                   {msg.role === 'user' ? (
                     <>
-                      <div className="max-w-[85%] bg-secondary/80 text-foreground px-5 py-3 rounded-2xl rounded-tr-sm text-[15px] leading-relaxed font-serif shadow-sm">
+                      <div className="max-w-[85%] bg-secondary/80 text-foreground px-5 py-3 rounded-2xl rounded-tr-sm text-[15px] leading-relaxed font-sans shadow-sm">
                         {msg.content}
                       </div>
                     </>
@@ -170,7 +166,7 @@ export default function ChatInterface({
                           /* Simple Chat/Image Message Bubble */
                           <div className="flex items-start gap-3">
                             <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 mt-1">
-                              {msg.metadata?.mode === 'image' ? <Sparkles className="w-4 h-4 text-primary" /> : <div className="text-sm">🤖</div>}
+                              {msg.metadata?.mode === 'image' ? <Sparkles className="w-4 h-4 text-primary" /> : <Bot className="w-4 h-4" />}
                             </div>
                             <div className="flex-1 space-y-2">
                               <div className="flex items-center gap-2">
@@ -179,19 +175,46 @@ export default function ChatInterface({
                                 </span>
                               </div>
 
-                              {/* Show shimmer if loading and no response yet */}
-                              {isLoading && !msg.stage3?.response && idx === conversation.messages.length - 1 ? (
+                              {/* Show shimmer if no response content yet */}
+                              {!msg.stage3?.response && !msg.content ? (
                                 <div className="mt-2">
                                   <TextShimmer
                                     duration={1.2}
                                     className="text-sm font-sans [--base-color:theme(colors.zinc.400)] [--base-gradient-color:theme(colors.zinc.200)] dark:[--base-color:theme(colors.zinc.600)] dark:[--base-gradient-color:theme(colors.zinc.400)]"
                                   >
-                                    {msg.metadata?.mode === 'image' ? 'Generating image...' : 'Thinking...'}
+                                    {currentMode === 'image' ? 'Generating image...' : 'Thinking...'}
                                   </TextShimmer>
                                 </div>
                               ) : (
                                 <div className="prose prose-invert prose-sm max-w-none text-muted-foreground leading-relaxed">
-                                  <ReactMarkdown>{msg.stage3?.response || msg.content || ''}</ReactMarkdown>
+                                  <ReactMarkdown
+                                    components={{
+                                      code({ node, inline, className, children, ...props }) {
+                                        const match = /language-(\w+)/.exec(className || '');
+                                        const language = match ? match[1] : 'text';
+
+                                        if (inline) {
+                                          return (
+                                            <code className={cn("bg-secondary/50 px-1.5 py-0.5 rounded text-sm font-mono text-primary", className)} {...props}>
+                                              {children}
+                                            </code>
+                                          );
+                                        }
+
+                                        return (
+                                          <div className="not-prose my-4 rounded-xl overflow-hidden border border-border/40 bg-card">
+                                            <CodeBlockCode
+                                              code={String(children).replace(/\n$/, '')}
+                                              language={language}
+                                              theme={theme === 'dark' ? 'github-dark' : 'github-light'}
+                                            />
+                                          </div>
+                                        );
+                                      }
+                                    }}
+                                  >
+                                    {msg.stage3?.response || msg.content || ''}
+                                  </ReactMarkdown>
                                 </div>
                               )}
                             </div>
@@ -201,7 +224,7 @@ export default function ChatInterface({
                           <>
                             <div className="flex items-center gap-3 border-b border-border/40 pb-3">
                               <div className="w-6 h-6 bg-primary/10 text-primary rounded-md flex items-center justify-center text-xs">
-                                🏛️
+                                <Users className="w-3.5 h-3.5" />
                               </div>
                               <span className="font-sans text-xs font-medium tracking-widest text-muted-foreground uppercase">LLM Council</span>
                             </div>
@@ -253,85 +276,79 @@ export default function ChatInterface({
             "relative mx-auto",
             hasMessages ? "max-w-3xl" : "max-w-2xl"
           )}>
-            <div className="relative group shadow-lg rounded-2xl bg-background">
+            <div className="relative flex items-center gap-2 bg-secondary/40 rounded-[26px] px-3 py-3 focus-within:bg-secondary/60 transition-all duration-300 shadow-sm hover:shadow-md">
+              {/* AI Tools Button */}
+              <button
+                ref={toolsButtonRef}
+                onClick={() => setIsToolsMenuOpen(!isToolsMenuOpen)}
+                className="shrink-0 p-2 h-10 w-10 flex items-center justify-center rounded-full hover:bg-background/50 text-muted-foreground hover:text-foreground transition-all duration-200"
+                title="AI Tools"
+              >
+                <Sparkles className="w-5 h-5" />
+              </button>
+
+              {/* Tools Menu Dropdown */}
+              {isToolsMenuOpen && (
+                <div className="absolute left-0 bottom-full mb-2 z-20">
+                  <ToolsMenu
+                    isOpen={isToolsMenuOpen}
+                    onClose={() => setIsToolsMenuOpen(false)}
+                    currentMode={currentMode}
+                    triggerRef={toolsButtonRef}
+                    onModeChange={(mode, subMode) => {
+                      setCurrentMode(mode);
+                      if (mode === 'council' && subMode) setCurrentRoom(subMode);
+                      if (mode === 'chat' && subMode) setCurrentModel(subMode);
+                      setIsToolsMenuOpen(false);
+                    }}
+                  />
+                </div>
+              )}
+
+              {/* Textarea */}
+              {/* Textarea */}
               <textarea
+                ref={textareaRef}
                 value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    handleSubmit();
-                  }
+                onChange={(e) => {
+                  setInput(e.target.value);
+                  // Auto-resize immediately on change
+                  e.target.style.height = 'auto';
+                  e.target.style.height = `${Math.min(e.target.scrollHeight, 200)}px`;
                 }}
-                placeholder="Message the council..."
-                className="w-full py-2 pl-12 pr-14 bg-secondary/30 border border-border/60 rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary/10 focus:border-primary/30 transition-all resize-none min-h-[40px] max-h-[200px] text-[15px] font-serif placeholder:font-sans placeholder:text-muted-foreground/50 flex items-center"
+                onKeyDown={handleKeyDown}
+                placeholder="What can I help you with?"
+                className="flex-1 bg-transparent border-0 focus:ring-0 resize-none min-h-[24px] max-h-[200px] text-base leading-relaxed font-sans placeholder:text-muted-foreground/50 scrollbar-hide outline-none py-2"
                 rows={1}
-                style={{ minHeight: '40px' }}
               />
 
-              {/* Tools Button in Input */}
-              <div className="absolute left-2 bottom-1.5">
-                <div className="relative">
-                  <button
-                    onClick={() => setIsToolsMenuOpen(!isToolsMenuOpen)}
-                    className={cn(
-                      "p-1.5 rounded-lg transition-all duration-200",
-                      isToolsMenuOpen
-                        ? "text-primary bg-primary/10"
-                        : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
-                    )}
-                    title="Tools"
-                  >
-                    <Sparkles className="w-4 h-4" />
-                  </button>
-                  {/* Tools Menu Positioned Upwards */}
-                  <div className="absolute bottom-full left-0 mb-2">
-                    <ToolsMenu
-                      isOpen={isToolsMenuOpen}
-                      onClose={() => setIsToolsMenuOpen(false)}
-                      currentMode={currentMode}
-                      onModeChange={(mode, subMode) => {
-                        setCurrentMode(mode);
-                        if (mode === 'council' && subMode) setCurrentRoom(subMode);
-                        if (mode === 'chat' && subMode) setCurrentModel(subMode);
-                        setIsToolsMenuOpen(false);
-                      }}
-                    />
-                  </div>
-                </div>
-              </div>
-
+              {/* Send Button */}
               <button
                 type="button"
                 onClick={handleSubmit}
                 disabled={isLoading || !input.trim()}
-                className="absolute right-2 bottom-2 p-2 bg-primary/90 text-primary-foreground rounded-xl hover:bg-primary hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
+                className="shrink-0 p-2 h-10 w-10 flex items-center justify-center bg-primary text-primary-foreground rounded-full hover:opacity-90 disabled:opacity-0 disabled:cursor-not-allowed transition-all duration-300 shadow-sm"
               >
                 {isLoading ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <Loader2 className="w-5 h-5 animate-spin" />
                 ) : (
-                  <Send className="w-4 h-4" />
+                  <Send className="w-5 h-5 ml-0.5" />
                 )}
               </button>
             </div>
-            <div className="flex justify-between items-center px-2 mt-2">
-              <p className="text-[10px] text-muted-foreground font-sans font-medium tracking-wide uppercase opacity-70">
+            <div className="flex justify-between items-center mt-2 px-1">
+              <span className="text-[10px] font-medium text-muted-foreground/40 uppercase tracking-widest">
                 {currentMode === 'council'
-                  ? (detectedRoom ? `Detected: ${detectedRoom.name}` : "Council Mode")
-                  : (currentMode === 'chat'
-                    ? `${CHAT_MODELS.find(m => m.id === currentModel)?.name || currentModel}`
-                    : "Image Generation")
+                  ? 'COUNCIL MODE'
+                  : currentMode === 'image'
+                    ? 'IMAGE GENERATION'
+                    : CHAT_MODELS.find(m => m.id === currentModel)?.name.toUpperCase() || 'CHAT MODE'
                 }
-              </p>
-              <p className="text-[10px] text-muted-foreground/50 font-sans">
-                Press Enter to send
-              </p>
+              </span>
             </div>
           </div>
         </div>
-
       </div>
-    </div >
+    </div>
   );
 }

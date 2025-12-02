@@ -25,6 +25,16 @@ function App() {
     try {
       const convs = await api.listConversations();
       setConversations(convs);
+
+      // If no conversations exist, create one automatically
+      if (convs.length === 0) {
+        const newConv = await api.createConversation();
+        setConversations([{ id: newConv.id, created_at: newConv.created_at, message_count: 0 }]);
+        setCurrentConversationId(newConv.id);
+      } else if (!currentConversationId) {
+        // If conversations exist but none is selected, select the most recent
+        setCurrentConversationId(convs[0].id);
+      }
     } catch (error) {
       console.error('Failed to load conversations:', error);
     }
@@ -166,6 +176,36 @@ function App() {
       case 'chat_start':
         // Chat mode started
         console.log('Chat started with model:', event.model);
+        setCurrentConversation((prev) => {
+          if (prev?.id !== conversationId) return prev;
+          const messages = [...prev.messages];
+          const lastMsg = messages[messages.length - 1];
+          if (lastMsg && lastMsg.role === 'assistant') {
+            lastMsg.metadata = { ...lastMsg.metadata, mode: 'chat', model: event.model };
+          }
+          return { ...prev, messages };
+        });
+        break;
+
+      case 'chat_chunk':
+        // Append chunk to current message
+        setCurrentConversation((prev) => {
+          if (prev?.id !== conversationId) return prev;
+          const messages = [...prev.messages];
+          const lastMsg = messages[messages.length - 1];
+          if (lastMsg && lastMsg.role === 'assistant') {
+            // Initialize content if null, or append chunk
+            const currentContent = lastMsg.stage3?.response || lastMsg.content || '';
+            const newContent = currentContent + (event.chunk || '');
+
+            // Update both stage3 (for compatibility) and content
+            lastMsg.stage3 = { ...lastMsg.stage3, response: newContent };
+            lastMsg.content = newContent;
+            // Ensure mode is chat so it renders as a bubble
+            lastMsg.metadata = { ...lastMsg.metadata, mode: 'chat' };
+          }
+          return { ...prev, messages };
+        });
         break;
 
       case 'chat_complete':
@@ -229,7 +269,6 @@ function App() {
           ...conversations,
         ]);
         setCurrentConversationId(newConv.id);
-        setCurrentConversation({ id: newConv.id, messages: [], created_at: newConv.created_at });
 
         // Continue with sending the message using the new conversation ID
         const conversationId = newConv.id;
@@ -244,10 +283,6 @@ function App() {
         try {
           // Optimistically add user message to UI
           const userMessage = { role: 'user', content };
-          setCurrentConversation(prev => ({
-            ...prev,
-            messages: [userMessage]
-          }));
 
           // Create a partial assistant message
           const assistantMessage = {
@@ -255,14 +290,19 @@ function App() {
             stage1: null,
             stage2: null,
             stage3: null,
-            metadata: null,
+            metadata: {
+              mode: options.mode || 'chat',
+              model: options.model
+            },
             loading: { stage1: false, stage2: false, stage3: false },
           };
 
-          setCurrentConversation(prev => ({
-            ...prev,
-            messages: [...prev.messages, assistantMessage]
-          }));
+          // Initialize conversation with both messages
+          setCurrentConversation({
+            id: conversationId,
+            messages: [userMessage, assistantMessage],
+            created_at: newConv.created_at
+          });
 
           // Send message with streaming using the streaming callback
           await api.sendMessageStream(conversationId, content, options, (eventType, event) => {
@@ -299,18 +339,17 @@ function App() {
         messages: [...prev.messages, userMessage],
       }));
 
-      // Create a partial assistant message that will be updated progressively
+      // Create a partial assistant message
       const assistantMessage = {
         role: 'assistant',
         stage1: null,
         stage2: null,
         stage3: null,
-        metadata: null,
-        loading: {
-          stage1: false,
-          stage2: false,
-          stage3: false,
+        metadata: {
+          mode: options.mode || 'chat',
+          model: options.model
         },
+        loading: { stage1: false, stage2: false, stage3: false },
       };
 
       // Add the partial assistant message

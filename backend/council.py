@@ -28,7 +28,7 @@ async def stage1_collect_responses(user_query: str, models: List[Dict[str, Any]]
     stage1_results = []
     # responses is keyed by model_id
     for model_id, response in responses.items():
-        if response is not None:  # Only include successful responses
+        if response is not None:  # Successful response
             # Extract content and ensure it's a string
             content = response.get('content', '')
             if not isinstance(content, str):
@@ -37,6 +37,11 @@ async def stage1_collect_responses(user_query: str, models: List[Dict[str, Any]]
             stage1_results.append({
                 "model": id_to_name.get(model_id, model_id), # Use name if available
                 "response": content  # ALWAYS a string
+            })
+        else:  # Failed response
+            stage1_results.append({
+                "model": id_to_name.get(model_id, model_id),
+                "response": "Error: Model failed to respond. It may be overloaded or unavailable."
             })
 
     return stage1_results
@@ -272,31 +277,36 @@ def calculate_aggregate_rankings(
     return aggregate
 
 
-async def generate_conversation_title(user_query: str) -> str:
+async def generate_conversation_title(user_queries: List[str]) -> str:
     """
-    Generate a short title for a conversation based on the first user message.
+    Generate a short title for a conversation based on the first few user messages.
 
     Args:
-        user_query: The first user message
+        user_queries: List of user messages (strings)
 
     Returns:
         A short title (3-5 words)
     """
-    title_prompt = f"""Generate a very short title (3-5 words maximum) that summarizes the following question.
-The title should be concise and descriptive. Do not use quotes or punctuation in the title.
+    # Take up to the first 5 queries
+    queries_to_use = user_queries[:5]
+    
+    combined_query = "\n".join([f"- {q}" for q in queries_to_use])
 
-Question: {user_query}
+    title_prompt = f"""Generate a very short title (3-5 words maximum) that summarizes the following conversation topics.
+The title should be concise, descriptive, and capture the main theme. Do not use quotes or punctuation.
+
+User Queries:
+{combined_query}
 
 Title:"""
 
     messages = [{"role": "user", "content": title_prompt}]
 
-    # Use gemini-1.5-flash for title generation (fast and cheap)
-    # Use the dict format for the new client
+    # Use Qwen 2.5 72B for title generation (reliable and fast enough)
     model_config = {
-        "id": "gemini-1.5-flash",
-        "provider": "google",
-        "name": "Gemini Flash"
+        "id": "qwen/qwen-2.5-72b-instruct",
+        "provider": "openrouter",
+        "name": "Qwen 2.5"
     }
     
     response = await query_model(model_config, messages, timeout=30.0)

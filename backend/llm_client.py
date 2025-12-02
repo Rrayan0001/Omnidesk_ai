@@ -42,6 +42,46 @@ async def query_model(
         print(f"Error querying model {model_id} ({provider}): {e}")
         return None
 
+
+async def query_model_stream(
+    model_config: Union[str, Dict[str, str]],
+    messages: List[Dict[str, str]],
+    timeout: float = 120.0
+):
+    """
+    Stream responses from a model chunk by chunk.
+    
+    Args:
+        model_config: Dict with 'id', 'provider', 'name' OR string
+        messages: List of message dicts
+        timeout: Request timeout
+        
+    Yields:
+        Text chunks as they arrive
+    """
+    # Handle legacy string input
+    if isinstance(model_config, str):
+        model_id = model_config
+        provider = "openrouter"
+    else:
+        model_id = model_config["id"]
+        provider = model_config.get("provider", "openrouter")
+
+    try:
+        if provider == "groq":
+            async for chunk in _stream_groq(model_id, messages, timeout):
+                yield chunk
+        elif provider == "google":
+            async for chunk in _stream_google(model_id, messages, timeout):
+                yield chunk
+        else:
+            async for chunk in _stream_openrouter(model_id, messages, timeout):
+                yield chunk
+    except Exception as e:
+        print(f"Error streaming from {model_id} ({provider}): {e}")
+        yield f"Error: {str(e)}"
+
+
 async def _query_openrouter(model: str, messages: List[Dict[str, str]], timeout: float) -> Optional[Dict[str, Any]]:
     headers = {
         "Authorization": f"Bearer {OPENROUTER_API_KEY}",
@@ -209,10 +249,103 @@ async def generate_image(prompt: str, timeout: float = 30.0) -> str:
     except Exception as e:
         print(f"Error enhancing prompt: {e}")
 
-    # 2. Return a placeholder image (since we can't easily do real image gen via simple REST without correct endpoint)
-    # If the user REALLY wants real generation, they'd need the specific Imagen endpoint.
-    # For now, this fulfills the "backend logic" requirement.
+    # 2. Generate image using Pollinations.ai (Free, no API key required)
+    # URL encode the prompt
+    import urllib.parse
+    encoded_prompt = urllib.parse.quote(enhanced_prompt)
     
-    encoded_summary = prompt.replace(" ", "+")
-    return f"![Generated Image](https://placehold.co/800x600?text={encoded_summary})\n\n**Prompt:** {enhanced_prompt}"
+    # Pollinations.ai URL
+    image_url = f"https://image.pollinations.ai/prompt/{encoded_prompt}"
+    
+    return f"![Generated Image]({image_url})\n\n**Prompt:** {enhanced_prompt}"
 
+
+# Streaming implementations for each provider
+async def _stream_groq(model: str, messages: List[Dict[str, str]], timeout: float):
+    """Stream responses from Groq API."""
+    headers = {
+        "Authorization": f"Bearer {GROQ_API_KEY}",
+        "Content-Type": "application/json",
+    }
+    
+    payload = {
+        "model": model,
+        "messages": messages,
+        "stream": True,
+    }
+    
+    async with httpx.AsyncClient(timeout=timeout) as client:
+        async with client.stream("POST", GROQ_API_URL, headers=headers, json=payload) as response:
+            response.raise_for_status()
+            async for line in response.aiter_lines():
+                if line.startswith("data: "):
+                    data_str = line[6:]
+                    if data_str == "[DONE]":
+                        break
+                    try:
+                        data = json.loads(data_str)
+                        if data.get("choices") and len(data["choices"]) > 0:
+                            delta = data["choices"][0].get("delta", {})
+                            content = delta.get("content")
+                            if content:
+                                yield content
+                    except json.JSONDecodeError:
+                        continue
+
+
+async def _stream_openrouter(model: str, messages: List[Dict[str, str]], timeout: float):
+    """Stream responses from OpenRouter API."""
+    headers = {
+        "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+        "Content-Type": "application/json",
+        "HTTP-Referer": "http://localhost:5173",
+    }
+    
+    payload = {
+        "model": model,
+        "messages": messages,
+        "stream": True,
+    }
+    
+    async with httpx.AsyncClient(timeout=timeout) as client:
+        async with client.stream("POST", OPENROUTER_API_URL, headers=headers, json=payload) as response:
+            response.raise_for_status()
+            async for line in response.aiter_lines():
+                if line.startswith("data: "):
+                    data_str = line[6:]
+                    if data_str == "[DONE]":
+                        break
+                    try:
+                        data = json.loads(data_str)
+                        if data.get("choices") and len(data["choices"]) > 0:
+                            delta = data["choices"][0].get("delta", {})
+                            content = delta.get("content")
+                            if content:
+                                yield content
+                    except json.JSONDecodeError:
+                        continue
+
+
+async def _stream_google(model: str, messages: List[Dict[str, str]], timeout: float):
+    """Stream responses from Google Gemini API."""
+    import google.generativeai as genai
+    
+    genai.configure(api_key=GOOGLE_API_KEY)
+    
+    # Convert OpenAI format to Gemini format
+    gemini_messages = []
+    for msg in messages:
+        role = "user" if msg["role"] == "user" else "model"
+        gemini_messages.append({"role": role, "parts": [msg["content"]]})
+    
+    model_instance = genai.GenerativeModel(model)
+    
+    # Stream the response
+    response = model_instance.generate_content(
+        gemini_messages[-1]["parts"][0],  # Use last message for now
+        stream=True
+    )
+    
+    for chunk in response:
+        if chunk.text:
+            yield chunk.text

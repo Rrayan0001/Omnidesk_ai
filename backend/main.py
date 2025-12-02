@@ -11,7 +11,7 @@ import asyncio
 
 from . import storage
 from .council import run_full_council, generate_conversation_title, stage1_collect_responses, stage2_collect_rankings, stage3_synthesize_final, calculate_aggregate_rankings
-from .classifier import detect_room
+from .classifier import detect_room, is_simple_query
 from .config import ROOMS, DEFAULT_ROOM, CHAT_MODELS
 from .llm_client import query_model
 
@@ -143,16 +143,24 @@ async def send_message(conversation_id: str, request: SendMessageRequest):
     # Add user message
     storage.add_user_message(conversation_id, request.content)
 
-    # If this is the first message, generate a title
-    if is_first_message:
-        title = await generate_conversation_title(request.content)
-        storage.update_conversation_title(conversation_id, title)
+    # Get all user messages for title generation
+    user_messages = [m["content"] for m in conversation["messages"] if m["role"] == "user"]
+    # Include the current message which was just added
+    user_messages.append(request.content)
 
-    # Log the received mode and model for debugging
-    print(f"[DEBUG] Received message - Mode: {request.mode}, Model: {request.model}, Room: {request.room}")
+    # Start title generation in background if within first 5 messages
+    title_task = None
+    if len(user_messages) <= 5:
+        title_task = asyncio.create_task(generate_conversation_title(user_messages))
+
+    # Optimization: Check for simple queries in Council mode and route to single model
+    if request.mode == "council" and is_simple_query(request.content):
+        # Override to chat mode with Grok 4.1
+        request.mode = "chat"
+        request.model = "x-ai/grok-4.1-fast:free"
 
     if request.mode == "chat":
-        # Normal Chat Mode
+        # Normal Chat Mode - Single model call for speed
         model_id = request.model
         # Find model config
         model_config = next((m for m in CHAT_MODELS if m["id"] == model_id), CHAT_MODELS[0])
@@ -166,8 +174,14 @@ async def send_message(conversation_id: str, request: SendMessageRequest):
         storage.add_assistant_message(
             conversation_id,
             [], [], 
-            {"model": model_config["name"], "response": content}
+            {"model": model_config["name"], "response": content},
+            metadata={"mode": "chat", "model": model_config["name"]}
         )
+        
+        # Update title if it was being generated
+        if title_task:
+            title = await title_task
+            storage.update_conversation_title(conversation_id, title)
         
         return {
             "stage1": [],
@@ -177,7 +191,7 @@ async def send_message(conversation_id: str, request: SendMessageRequest):
         }
 
     elif request.mode == "image":
-        # Image Generation Mode
+        # Image Generation Mode - Dedicated pipeline
         from .llm_client import generate_image
         
         # Call the image generation function
@@ -186,8 +200,14 @@ async def send_message(conversation_id: str, request: SendMessageRequest):
         storage.add_assistant_message(
             conversation_id,
             [], [], 
-            {"model": "Gemini Image Generator", "response": content}
+            {"model": "Gemini Image Generator", "response": content},
+            metadata={"mode": "image"}
         )
+        
+        # Update title if it was being generated
+        if title_task:
+            title = await title_task
+            storage.update_conversation_title(conversation_id, title)
         
         return {
             "stage1": [],
@@ -197,7 +217,7 @@ async def send_message(conversation_id: str, request: SendMessageRequest):
         }
 
     else:
-        # Council Mode (Default)
+        # Council Mode - Parallel multi-model execution
         room_id = request.room or DEFAULT_ROOM
         room_config = ROOMS.get(room_id, ROOMS[DEFAULT_ROOM])
 
@@ -213,8 +233,14 @@ async def send_message(conversation_id: str, request: SendMessageRequest):
             conversation_id,
             stage1_results,
             stage2_results,
-            stage3_result
+            stage3_result,
+            metadata=metadata
         )
+        
+        # Update title if it was being generated
+        if title_task:
+            title = await title_task
+            storage.update_conversation_title(conversation_id, title)
 
         # Return the complete response with metadata
         return {
@@ -243,28 +269,46 @@ async def send_message_stream(conversation_id: str, request: SendMessageRequest)
             # Add user message
             storage.add_user_message(conversation_id, request.content)
 
-            # Start title generation in parallel (don't await yet)
+            # Get all user messages for title generation
+            user_messages = [m["content"] for m in conversation["messages"] if m["role"] == "user"]
+            user_messages.append(request.content)
+
+            # Start title generation in parallel (don't await yet) if within first 5 messages
             title_task = None
-            if is_first_message:
-                title_task = asyncio.create_task(generate_conversation_title(request.content))
+            if len(user_messages) <= 5:
+                title_task = asyncio.create_task(generate_conversation_title(user_messages))
+
+            # Optimization: Check for simple queries in Council mode and route to single model
+            if request.mode == "council" and is_simple_query(request.content):
+                # Override to chat mode with Grok 4.1
+                request.mode = "chat"
+                request.model = "x-ai/grok-4.1-fast:free"
 
             if request.mode == "chat":
-                # Normal Chat Mode
+                # Normal Chat Mode with Streaming
                 model_id = request.model
                 model_config = next((m for m in CHAT_MODELS if m["id"] == model_id), CHAT_MODELS[0])
                 
                 yield f"data: {json.dumps({'type': 'chat_start', 'model': model_config['name']})}\n\n"
                 
                 messages = [{"role": "user", "content": request.content}]
-                response = await query_model(model_config, messages)
-                content = response.get("content", "Error: No response") if response else "Error: Model failed"
+                full_response = ""
                 
-                yield f"data: {json.dumps({'type': 'chat_complete', 'data': {'model': model_config['name'], 'response': content}})}\n\n"
+                # Stream the response chunk by chunk
+                from .llm_client import query_model_stream
+                async for chunk in query_model_stream(model_config, messages):
+                    full_response += chunk
+                    # Send each chunk to frontend
+                    yield f"data: {json.dumps({'type': 'chat_chunk', 'chunk': chunk})}\n\n"
+                
+                yield f"data: {json.dumps({'type': 'chat_complete', 'data': {'model': model_config['name'], 'response': full_response}})}\n\n"
                 
                 storage.add_assistant_message(
                     conversation_id, [], [], 
-                    {"model": model_config["name"], "response": content}
+                    {"model": model_config["name"], "response": full_response},
+                    metadata={"mode": "chat", "model": model_config["name"]}
                 )
+
 
             elif request.mode == "image":
                 # Image Generation Mode
@@ -279,7 +323,8 @@ async def send_message_stream(conversation_id: str, request: SendMessageRequest)
                 
                 storage.add_assistant_message(
                     conversation_id, [], [], 
-                    {"model": "Gemini Image Generator", "response": content}
+                    {"model": "Gemini Image Generator", "response": content},
+                    metadata={"mode": "image"}
                 )
 
             else:
@@ -308,7 +353,8 @@ async def send_message_stream(conversation_id: str, request: SendMessageRequest)
                     conversation_id,
                     stage1_results,
                     stage2_results,
-                    stage3_result
+                    stage3_result,
+                    metadata={"mode": "council", "room": room_id}
                 )
 
             # Wait for title generation if it was started

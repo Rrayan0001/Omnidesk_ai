@@ -15,12 +15,12 @@ COUNCIL_MODELS = [
     {
         "id": "llama-3.3-70b-versatile",
         "provider": "groq",
-        "name": "Groq Llama 3.3 70B"
+        "name": "Llama 3.3 70B"
     },
     {
-        "id": "gemini-2.5-flash-preview-09-2025",
-        "provider": "google",
-        "name": "Gemini 2.5 Flash"
+        "id": "qwen/qwen-2.5-72b-instruct",
+        "provider": "openrouter",
+        "name": "Qwen 2.5 72B"
     },
     {
         "id": "x-ai/grok-4.1-fast:free",
@@ -30,7 +30,7 @@ COUNCIL_MODELS = [
     {
         "id": "moonshotai/kimi-k2-instruct",
         "provider": "groq",
-        "name": "Moonshot Kimi K2 (Groq)"
+        "name": "Moonshot Kimi K2"
     },
 ]
 
@@ -40,12 +40,12 @@ CHAT_MODELS = [
     {
         "id": "llama-3.3-70b-versatile",
         "provider": "groq",
-        "name": "Groq Llama 3.3 70B"
+        "name": "Llama 3.3 70B"
     },
     {
-        "id": "gemini-2.5-flash-preview-09-2025",
-        "provider": "google",
-        "name": "Gemini 2.5 Flash"
+        "id": "qwen/qwen-2.5-72b-instruct",
+        "provider": "openrouter",
+        "name": "Qwen 2.5 72B"
     },
     {
         "id": "x-ai/grok-4.1-fast:free",
@@ -55,12 +55,12 @@ CHAT_MODELS = [
     {
         "id": "moonshotai/kimi-k2-instruct",
         "provider": "groq",
-        "name": "Moonshot Kimi K2 (Groq)"
+        "name": "Moonshot Kimi K2"
     },
     {
         "id": "openai/gpt-oss-120b",
         "provider": "openrouter",
-        "name": "GPT-OSS 120B (Chairman)"
+        "name": "GPT-OSS 120B"
     }
 ]
 
@@ -86,7 +86,7 @@ IMAGE_MODEL = {
 CHAIRMAN_MODEL = {
     "id": "openai/gpt-oss-120b",
     "provider": "openrouter",
-    "name": "GPT-OSS 120B (Chairman)"
+    "name": "GPT-OSS 120B"
 }
 
 # API Endpoints
@@ -107,35 +107,35 @@ ROOMS = {
     "code": {
         "name": "Code Room",
         "description": "Optimized for coding, debugging, and technical tasks",
-        "icon": "💻",
+        "icon": "Code",
         "models": COUNCIL_MODELS,  # Use all models for now, can specialize later
         "chairman": CHAIRMAN_MODEL
     },
     "study": {
         "name": "Study Room",
         "description": "Best for learning, explanations, and problem-solving",
-        "icon": "📚",
+        "icon": "BookOpen",
         "models": COUNCIL_MODELS,
         "chairman": CHAIRMAN_MODEL
     },
     "creative": {
         "name": "Creative Room",
         "description": "Perfect for writing, content creation, and ideas",
-        "icon": "🎨",
+        "icon": "Palette",
         "models": COUNCIL_MODELS,
         "chairman": CHAIRMAN_MODEL
     },
     "decision": {
         "name": "Decision Room",
         "description": "Helps you make choices and compare options",
-        "icon": "⚖️",
+        "icon": "Scale",
         "models": COUNCIL_MODELS,
         "chairman": CHAIRMAN_MODEL
     },
     "general": {
         "name": "General Room",
         "description": "General purpose discussion",
-        "icon": "🏛️",
+        "icon": "Building2",
         "models": COUNCIL_MODELS,
         "chairman": CHAIRMAN_MODEL
     }

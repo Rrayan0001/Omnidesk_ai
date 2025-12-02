@@ -41,79 +41,76 @@
 }
 
 :root {
-  /* Warm Literary Palette - Light Mode */
-  --background: 30 14% 97%;
-  /* #FAF8F6 - Warm Cream */
-  --foreground: 30 5% 20%;
-  /* #333333 - Soft Black */
+  /* ChatGPT Light Theme */
+  --background: 0 0% 100%;
+  /* #ffffff */
+  --foreground: 0 0% 9%;
+  /* #171717 */
 
   --card: 0 0% 100%;
-  --card-foreground: 30 5% 20%;
+  --card-foreground: 0 0% 9%;
 
   --popover: 0 0% 100%;
-  --popover-foreground: 30 5% 20%;
+  --popover-foreground: 0 0% 9%;
 
-  --primary: 26 36% 51%;
-  /* #B07654 - Warm Clay/Terracotta */
-  --primary-foreground: 30 14% 97%;
+  --primary: 0 0% 9%;
+  /* #171717 */
+  --primary-foreground: 0 0% 98%;
 
-  --secondary: 30 10% 92%;
-  /* #EBE8E4 - Warm Light Gray */
-  --secondary-foreground: 30 5% 20%;
+  --secondary: 0 0% 96.1%;
+  /* #f5f5f5 */
+  --secondary-foreground: 0 0% 9%;
 
-  --muted: 30 10% 92%;
-  --muted-foreground: 30 4% 45%;
+  --muted: 0 0% 96.1%;
+  --muted-foreground: 0 0% 45.1%;
 
-  --accent: 30 15% 94%;
-  --accent-foreground: 30 5% 20%;
+  --accent: 0 0% 96.1%;
+  --accent-foreground: 0 0% 9%;
 
   --destructive: 0 84.2% 60.2%;
   --destructive-foreground: 0 0% 98%;
 
-  --border: 30 8% 88%;
-  /* #E0DBD8 */
-  --input: 30 8% 88%;
-  --ring: 26 36% 51%;
+  --border: 0 0% 89.8%;
+  /* #e5e5e5 */
+  --input: 0 0% 89.8%;
+  --ring: 0 0% 9%;
 
-  --radius: 0.75rem;
-  /* Softer radius */
+  --radius: 0.5rem;
 }
 
 .dark {
-  /* Warm Literary Palette - Dark Mode */
-  --background: 30 5% 12%;
-  /* #1F1F1F - Warm Charcoal */
-  --foreground: 30 10% 92%;
-  /* #EBE8E4 - Off-white */
+  /* ChatGPT Premium Dark Theme */
+  --background: 0 0% 10%;
+  /* #1a1a1a - Deeper dark */
+  --foreground: 0 0% 98%;
+  /* #fafafa - Brighter white */
 
-  --card: 30 5% 15%;
-  /* #262626 */
-  --card-foreground: 30 10% 92%;
+  --card: 0 0% 10%;
+  --card-foreground: 0 0% 98%;
 
-  --popover: 30 5% 15%;
-  --popover-foreground: 30 10% 92%;
+  --popover: 0 0% 10%;
+  --popover-foreground: 0 0% 98%;
 
-  --primary: 26 36% 60%;
-  /* #C28E70 - Lighter Clay */
-  --primary-foreground: 30 5% 12%;
+  --primary: 0 0% 98%;
+  --primary-foreground: 0 0% 9%;
 
-  --secondary: 30 5% 18%;
-  /* #2E2E2E */
-  --secondary-foreground: 30 10% 92%;
+  --secondary: 0 0% 16%;
+  /* #292929 - Subtle separation */
+  --secondary-foreground: 0 0% 98%;
 
-  --muted: 30 5% 18%;
-  --muted-foreground: 30 5% 60%;
+  --muted: 0 0% 16%;
+  --muted-foreground: 0 0% 70%;
+  /* #b3b3b3 - Lighter gray for better readability */
 
-  --accent: 30 5% 18%;
-  --accent-foreground: 30 10% 92%;
+  --accent: 0 0% 16%;
+  --accent-foreground: 0 0% 98%;
 
   --destructive: 0 62.8% 30.6%;
   --destructive-foreground: 0 0% 98%;
 
-  --border: 30 5% 22%;
-  /* #383838 */
-  --input: 30 5% 22%;
-  --ring: 26 36% 60%;
+  --border: 0 0% 20%;
+  --input: 0 0% 20%;
+  --ring: 0 0% 83.1%;
 }
 
 @layer base {
@@ -124,7 +121,6 @@
   body {
     @apply bg-background text-foreground antialiased;
     font-family: 'Inter', sans-serif;
-    /* Default UI font */
   }
 
   h1,
@@ -133,9 +129,9 @@
   h4,
   h5,
   h6 {
-    font-family: 'Merriweather', serif;
-    /* Headings in Serif */
-    @apply tracking-tight;
+    font-family: 'Inter', sans-serif;
+    /* ChatGPT uses sans-serif for headings too */
+    @apply tracking-tight font-semibold;
   }
 }
 
