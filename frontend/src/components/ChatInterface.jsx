@@ -159,7 +159,7 @@ export default function ChatInterface({
                       </div>
                     </>
                   ) : (
-                    <div className="w-full space-y-6">
+                    <div className="w-full min-w-0 space-y-6 overflow-x-hidden">
                       {/* Check message mode from metadata */}
                       {
                         msg.metadata?.mode === 'chat' || msg.metadata?.mode === 'image' ? (
@@ -168,7 +168,7 @@ export default function ChatInterface({
                             <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 mt-1">
                               {msg.metadata?.mode === 'image' ? <Sparkles className="w-4 h-4 text-primary" /> : <Bot className="w-4 h-4" />}
                             </div>
-                            <div className="flex-1 space-y-2">
+                            <div className="flex-1 min-w-0 space-y-2">
                               <div className="flex items-center gap-2">
                                 <span className="text-sm font-medium font-sans text-foreground">
                                   {msg.metadata?.model || (msg.metadata?.mode === 'image' ? 'Image Generator' : 'Assistant')}
@@ -186,7 +186,7 @@ export default function ChatInterface({
                                   </TextShimmer>
                                 </div>
                               ) : (
-                                <div className="prose prose-invert prose-sm max-w-none text-muted-foreground leading-relaxed">
+                                <div className="prose prose-invert prose-sm max-w-none text-muted-foreground leading-relaxed break-words overflow-wrap-anywhere overflow-x-hidden" style={{ wordWrap: 'break-word', overflowWrap: 'anywhere', maxWidth: '100%' }}>
                                   <ReactMarkdown
                                     components={{
                                       code({ node, inline, className, children, ...props }) {

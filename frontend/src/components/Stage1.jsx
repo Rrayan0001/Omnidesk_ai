@@ -101,7 +101,7 @@ export default function Stage1({ responses, isLoading }) {
 
         {/* Content Area */}
         <div className="p-6 bg-card min-h-[150px]">
-          <div className="markdown-content text-[15px] leading-relaxed text-foreground font-serif">
+          <div className="markdown-content text-[15px] leading-relaxed text-foreground font-serif break-words overflow-wrap-anywhere overflow-x-hidden" style={{ wordWrap: 'break-word', overflowWrap: 'anywhere', maxWidth: '100%' }}>
             <ReactMarkdown
               components={{
                 code({ node, inline, className, children, ...props }) {

@@ -1,4 +1,5 @@
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { cn } from '@/lib/utils';
 import { TextShimmer } from '@/components/ui/text-shimmer';
 import { CodeBlockCode } from '@/components/ui/code-block';
@@ -65,8 +66,9 @@ export default function Stage3({ finalResponse, isLoading }) {
             </div>
           </div>
 
-          <div className="markdown-content text-[16px] leading-relaxed text-foreground font-serif">
+          <div className="markdown-content text-[15px] leading-relaxed text-foreground font-sans break-words overflow-wrap-anywhere overflow-x-hidden" style={{ wordWrap: 'break-word', overflowWrap: 'anywhere', maxWidth: '100%' }}>
             <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
               components={{
                 code({ node, inline, className, children, ...props }) {
                   const match = /language-(\w+)/.exec(className || '');
@@ -88,6 +90,62 @@ export default function Stage3({ finalResponse, isLoading }) {
                         theme={theme === 'dark' ? 'github-dark' : 'github-light'}
                       />
                     </div>
+                  );
+                },
+                table({ children }) {
+                  return (
+                    <div className="my-6 w-full overflow-x-auto rounded-lg border border-border/40">
+                      <table className="w-full text-sm text-left">
+                        {children}
+                      </table>
+                    </div>
+                  );
+                },
+                thead({ children }) {
+                  return (
+                    <thead className="bg-secondary/30 text-xs uppercase font-semibold text-muted-foreground border-b border-border/40">
+                      {children}
+                    </thead>
+                  );
+                },
+                tbody({ children }) {
+                  return <tbody className="divide-y divide-border/40">{children}</tbody>;
+                },
+                tr({ children }) {
+                  return <tr className="hover:bg-secondary/10 transition-colors">{children}</tr>;
+                },
+                th({ children }) {
+                  return <th className="px-4 py-3 whitespace-nowrap">{children}</th>;
+                },
+                td({ children }) {
+                  return <td className="px-4 py-3 align-top">{children}</td>;
+                },
+                h1({ children }) {
+                  return <h1 className="text-2xl font-bold mt-8 mb-4 first:mt-0">{children}</h1>;
+                },
+                h2({ children }) {
+                  return <h2 className="text-xl font-bold mt-6 mb-3">{children}</h2>;
+                },
+                h3({ children }) {
+                  return <h3 className="text-lg font-semibold mt-5 mb-2">{children}</h3>;
+                },
+                ul({ children }) {
+                  return <ul className="list-disc list-outside ml-5 my-4 space-y-1">{children}</ul>;
+                },
+                ol({ children }) {
+                  return <ol className="list-decimal list-outside ml-5 my-4 space-y-1">{children}</ol>;
+                },
+                li({ children }) {
+                  return <li className="pl-1">{children}</li>;
+                },
+                p({ children }) {
+                  return <p className="my-3 last:mb-0">{children}</p>;
+                },
+                blockquote({ children }) {
+                  return (
+                    <blockquote className="border-l-4 border-primary/30 pl-4 py-1 my-4 bg-secondary/20 rounded-r italic">
+                      {children}
+                    </blockquote>
                   );
                 }
               }}
