@@ -2,6 +2,9 @@
 
 # LLM Council - Start script
 
+# Navigate to project root
+cd "$(dirname "$0")/.."
+
 echo "Starting LLM Council..."
 echo ""
 
