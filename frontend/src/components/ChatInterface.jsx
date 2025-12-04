@@ -30,7 +30,7 @@ export default function ChatInterface({
   toggleSidebar,
   onDeleteConversation,
 }) {
-  const { theme } = useTheme();
+  const { theme, toggleTheme } = useTheme();
   const [input, setInput] = useState('');
   const [detectedRoom, setDetectedRoom] = useState(null);
   const [pendingMessage, setPendingMessage] = useState('');
