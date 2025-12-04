@@ -23,14 +23,14 @@ COUNCIL_MODELS = [
         "name": "Qwen 2.5 72B"
     },
     {
-        "id": "x-ai/grok-4.1-fast:free",
+        "id": "mistralai/mistral-large-2411",
         "provider": "openrouter",
-        "name": "Grok 4.1 Fast"
+        "name": "Mistral Large"
     },
     {
-        "id": "moonshotai/kimi-k2-instruct",
-        "provider": "groq",
-        "name": "Moonshot Kimi K2"
+        "id": "meta-llama/llama-3.1-70b-instruct",
+        "provider": "openrouter",
+        "name": "Llama 3.1 70B"
     },
 ]
 
@@ -48,19 +48,19 @@ CHAT_MODELS = [
         "name": "Qwen 2.5 72B"
     },
     {
-        "id": "x-ai/grok-4.1-fast:free",
+        "id": "mistralai/mistral-large-2411",
         "provider": "openrouter",
-        "name": "Grok 4.1 Fast"
+        "name": "Mistral Large"
     },
     {
-        "id": "moonshotai/kimi-k2-instruct",
-        "provider": "groq",
-        "name": "Moonshot Kimi K2"
+        "id": "meta-llama/llama-3.1-70b-instruct",
+        "provider": "openrouter",
+        "name": "Llama 3.1 70B"
     },
     {
-        "id": "openai/gpt-oss-120b",
+        "id": "google/gemini-2.0-flash-001",
         "provider": "openrouter",
-        "name": "GPT-OSS 120B"
+        "name": "Gemini 2.0 Flash"
     }
 ]
 
@@ -84,9 +84,9 @@ IMAGE_MODEL = {
 
 # Chairman model
 CHAIRMAN_MODEL = {
-    "id": "openai/gpt-oss-120b",
+    "id": "anthropic/claude-3.5-sonnet",
     "provider": "openrouter",
-    "name": "GPT-OSS 120B"
+    "name": "Claude 3.5 Sonnet"
 }
 
 # API Endpoints
