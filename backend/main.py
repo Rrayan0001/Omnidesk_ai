@@ -17,10 +17,18 @@ from .llm_client import query_model
 
 app = FastAPI(title="LLM Council API")
 
-# Enable CORS for local development
+import os
+
+# Enable CORS for local development and production
+allowed_origins_str = os.getenv("ALLOWED_ORIGINS", "")
+allowed_origins = [origin.strip() for origin in allowed_origins_str.split(",") if origin.strip()]
+# Add default local origins
+default_origins = ["http://localhost:5173", "http://localhost:3000", "http://localhost:1000", "http://localhost:10000"]
+allowed_origins.extend([o for o in default_origins if o not in allowed_origins])
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:3000", "http://localhost:1000", "http://localhost:10000"],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

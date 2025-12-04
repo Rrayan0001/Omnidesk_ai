@@ -130,8 +130,19 @@ export default function ChatInterface({
         />
       )}
 
+      {/* Mobile Header with Sidebar Toggle */}
+      <div className="md:hidden flex items-center p-4 border-b border-border/40 bg-background/80 backdrop-blur-sm z-10 absolute top-0 left-0 right-0 h-14">
+        <button
+          onClick={toggleSidebar}
+          className="p-2 -ml-2 rounded-md hover:bg-secondary/80 text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <PanelLeft className="w-5 h-5" />
+        </button>
+        <div className="ml-2 font-semibold text-sm">OmniDesk AI</div>
+      </div>
+
       {/* Main Content Area */}
-      <div className="flex-1 relative overflow-hidden flex flex-col">
+      <div className="flex-1 relative overflow-hidden flex flex-col pt-14 md:pt-0">
 
         {/* Messages or Empty State */}
         <div className="flex-1 overflow-y-auto scroll-smooth">

@@ -383,7 +383,7 @@ function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-background">
+    <div className="flex h-[100dvh] w-screen overflow-hidden bg-background">
       <Sidebar
         conversations={conversations}
         currentConversationId={currentConversationId}
