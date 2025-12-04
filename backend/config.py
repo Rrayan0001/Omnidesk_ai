@@ -10,7 +10,7 @@ OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 
-# Council members
+# Council members - Best free models
 COUNCIL_MODELS = [
     {
         "id": "llama-3.3-70b-versatile",
@@ -18,24 +18,23 @@ COUNCIL_MODELS = [
         "name": "Llama 3.3 70B"
     },
     {
-        "id": "qwen/qwen-2.5-72b-instruct:free",
+        "id": "qwen/qwen3-coder-480b-a35b:free",
         "provider": "openrouter",
-        "name": "Qwen 2.5 72B"
+        "name": "Qwen3 Coder 480B"
     },
     {
-        "id": "mistralai/mistral-7b-instruct:free",
+        "id": "moonshotai/kimi-k2-0711:free",
         "provider": "openrouter",
-        "name": "Mistral 7B"
+        "name": "Kimi K2"
     },
     {
-        "id": "meta-llama/llama-3.1-8b-instruct:free",
+        "id": "openai/gpt-oss-20b:free",
         "provider": "openrouter",
-        "name": "Llama 3.1 8B"
+        "name": "GPT OSS 20B"
     },
 ]
 
 # Chat Models (for Normal Chat mode)
-# Chat Models (Synced with Council Models)
 CHAT_MODELS = [
     {
         "id": "llama-3.3-70b-versatile",
@@ -43,24 +42,29 @@ CHAT_MODELS = [
         "name": "Llama 3.3 70B"
     },
     {
+        "id": "qwen/qwen3-coder-480b-a35b:free",
+        "provider": "openrouter",
+        "name": "Qwen3 Coder 480B"
+    },
+    {
+        "id": "moonshotai/kimi-k2-0711:free",
+        "provider": "openrouter",
+        "name": "Kimi K2"
+    },
+    {
+        "id": "openai/gpt-oss-20b:free",
+        "provider": "openrouter",
+        "name": "GPT OSS 20B"
+    },
+    {
+        "id": "openai/gpt-oss-120b:free",
+        "provider": "openrouter",
+        "name": "GPT OSS 120B"
+    },
+    {
         "id": "qwen/qwen-2.5-72b-instruct:free",
         "provider": "openrouter",
         "name": "Qwen 2.5 72B"
-    },
-    {
-        "id": "mistralai/mistral-7b-instruct:free",
-        "provider": "openrouter",
-        "name": "Mistral 7B"
-    },
-    {
-        "id": "meta-llama/llama-3.1-8b-instruct:free",
-        "provider": "openrouter",
-        "name": "Llama 3.1 8B"
-    },
-    {
-        "id": "google/gemma-2-9b-it:free",
-        "provider": "openrouter",
-        "name": "Gemma 2 9B"
     }
 ]
 
@@ -82,11 +86,11 @@ IMAGE_MODEL = {
     "name": "Gemini Image Generation"
 }
 
-# Chairman model
+# Chairman model - Best reasoning model
 CHAIRMAN_MODEL = {
-    "id": "qwen/qwen-2.5-72b-instruct:free",
+    "id": "openai/gpt-oss-120b:free",
     "provider": "openrouter",
-    "name": "Qwen 2.5 72B"
+    "name": "GPT OSS 120B"
 }
 
 # API Endpoints
