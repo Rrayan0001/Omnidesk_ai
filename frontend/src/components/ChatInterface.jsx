@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Send, Loader2, PanelLeft, Trash2, Sparkles, Bot, Users, Cpu, Image as ImageIcon } from 'lucide-react';
+import { Send, Loader2, PanelLeft, Trash2, Sparkles, Bot, Users, Cpu, Image as ImageIcon, Sun, Moon } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { useTheme } from "@/contexts/ThemeContext";
 // import { ChatInput, ChatInputTextArea, ChatInputSubmit } from '@/components/ui/chat-input';
@@ -131,14 +131,23 @@ export default function ChatInterface({
       )}
 
       {/* Mobile Header with Sidebar Toggle */}
-      <div className="md:hidden flex items-center p-4 border-b border-border/40 bg-background/80 backdrop-blur-sm z-10 absolute top-0 left-0 right-0 h-14">
+      <div className="md:hidden flex items-center justify-between p-4 border-b border-border/40 bg-background/80 backdrop-blur-sm z-10 absolute top-0 left-0 right-0 h-14">
+        <div className="flex items-center">
+          <button
+            onClick={toggleSidebar}
+            className="p-2 -ml-2 rounded-md hover:bg-secondary/80 text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <PanelLeft className="w-5 h-5" />
+          </button>
+          <div className="ml-2 font-semibold text-sm">OmniDesk AI</div>
+        </div>
         <button
-          onClick={toggleSidebar}
-          className="p-2 -ml-2 rounded-md hover:bg-secondary/80 text-muted-foreground hover:text-foreground transition-colors"
+          onClick={toggleTheme}
+          className="p-2 rounded-md hover:bg-secondary/80 text-muted-foreground hover:text-foreground transition-colors"
+          aria-label="Toggle theme"
         >
-          <PanelLeft className="w-5 h-5" />
+          {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
         </button>
-        <div className="ml-2 font-semibold text-sm">OmniDesk AI</div>
       </div>
 
       {/* Main Content Area */}
