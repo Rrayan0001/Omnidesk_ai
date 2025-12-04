@@ -18,19 +18,19 @@ COUNCIL_MODELS = [
         "name": "Llama 3.3 70B"
     },
     {
-        "id": "qwen/qwen-2.5-72b-instruct",
+        "id": "qwen/qwen-2.5-72b-instruct:free",
         "provider": "openrouter",
         "name": "Qwen 2.5 72B"
     },
     {
-        "id": "mistralai/mistral-large-2411",
+        "id": "mistralai/mistral-7b-instruct:free",
         "provider": "openrouter",
-        "name": "Mistral Large"
+        "name": "Mistral 7B"
     },
     {
-        "id": "meta-llama/llama-3.1-70b-instruct",
+        "id": "meta-llama/llama-3.1-8b-instruct:free",
         "provider": "openrouter",
-        "name": "Llama 3.1 70B"
+        "name": "Llama 3.1 8B"
     },
 ]
 
@@ -43,24 +43,24 @@ CHAT_MODELS = [
         "name": "Llama 3.3 70B"
     },
     {
-        "id": "qwen/qwen-2.5-72b-instruct",
+        "id": "qwen/qwen-2.5-72b-instruct:free",
         "provider": "openrouter",
         "name": "Qwen 2.5 72B"
     },
     {
-        "id": "mistralai/mistral-large-2411",
+        "id": "mistralai/mistral-7b-instruct:free",
         "provider": "openrouter",
-        "name": "Mistral Large"
+        "name": "Mistral 7B"
     },
     {
-        "id": "meta-llama/llama-3.1-70b-instruct",
+        "id": "meta-llama/llama-3.1-8b-instruct:free",
         "provider": "openrouter",
-        "name": "Llama 3.1 70B"
+        "name": "Llama 3.1 8B"
     },
     {
-        "id": "google/gemini-2.0-flash-001",
+        "id": "google/gemma-2-9b-it:free",
         "provider": "openrouter",
-        "name": "Gemini 2.0 Flash"
+        "name": "Gemma 2 9B"
     }
 ]
 
@@ -84,9 +84,9 @@ IMAGE_MODEL = {
 
 # Chairman model
 CHAIRMAN_MODEL = {
-    "id": "anthropic/claude-3.5-sonnet",
+    "id": "qwen/qwen-2.5-72b-instruct:free",
     "provider": "openrouter",
-    "name": "Claude 3.5 Sonnet"
+    "name": "Qwen 2.5 72B"
 }
 
 # API Endpoints
