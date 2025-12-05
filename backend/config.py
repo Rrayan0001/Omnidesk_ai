@@ -18,19 +18,19 @@ COUNCIL_MODELS = [
         "name": "Llama 3.3 70B"
     },
     {
-        "id": "qwen/qwen3-coder-480b-a35b:free",
-        "provider": "openrouter",
-        "name": "Qwen3 Coder 480B"
-    },
-    {
-        "id": "moonshotai/kimi-k2-0711:free",
-        "provider": "openrouter",
+        "id": "moonshotai/kimi-k2",
+        "provider": "groq",
         "name": "Kimi K2"
     },
     {
-        "id": "openai/gpt-oss-20b:free",
+        "id": "qwen-qwq-32b",
+        "provider": "groq",
+        "name": "Qwen 3 32B"
+    },
+    {
+        "id": "qwen/qwen-2.5-72b-instruct:free",
         "provider": "openrouter",
-        "name": "GPT OSS 20B"
+        "name": "Qwen 2.5 72B"
     },
 ]
 
@@ -42,29 +42,29 @@ CHAT_MODELS = [
         "name": "Llama 3.3 70B"
     },
     {
-        "id": "qwen/qwen3-coder-480b-a35b:free",
-        "provider": "openrouter",
-        "name": "Qwen3 Coder 480B"
-    },
-    {
-        "id": "moonshotai/kimi-k2-0711:free",
-        "provider": "openrouter",
+        "id": "moonshotai/kimi-k2",
+        "provider": "groq",
         "name": "Kimi K2"
     },
     {
-        "id": "openai/gpt-oss-20b:free",
-        "provider": "openrouter",
-        "name": "GPT OSS 20B"
+        "id": "qwen-qwq-32b",
+        "provider": "groq",
+        "name": "Qwen 3 32B"
     },
     {
-        "id": "openai/gpt-oss-120b:free",
-        "provider": "openrouter",
+        "id": "openai/gpt-oss-120b",
+        "provider": "groq",
         "name": "GPT OSS 120B"
     },
     {
         "id": "qwen/qwen-2.5-72b-instruct:free",
         "provider": "openrouter",
         "name": "Qwen 2.5 72B"
+    },
+    {
+        "id": "qwen/qwen3-coder-480b-a35b:free",
+        "provider": "openrouter",
+        "name": "Qwen3 Coder 480B"
     }
 ]
 
@@ -88,8 +88,8 @@ IMAGE_MODEL = {
 
 # Chairman model - Best reasoning model
 CHAIRMAN_MODEL = {
-    "id": "openai/gpt-oss-120b:free",
-    "provider": "openrouter",
+    "id": "openai/gpt-oss-120b",
+    "provider": "groq",
     "name": "GPT OSS 120B"
 }
 

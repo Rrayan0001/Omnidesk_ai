@@ -16,11 +16,11 @@ import { CodeBlockCode } from '@/components/ui/code-block';
 // Import chat models for display
 const CHAT_MODELS = [
   { id: 'llama-3.3-70b-versatile', name: 'Llama 3.3 70B', provider: 'Groq' },
-  { id: 'qwen/qwen3-coder-480b-a35b:free', name: 'Qwen3 Coder 480B', provider: 'OpenRouter' },
-  { id: 'moonshotai/kimi-k2-0711:free', name: 'Kimi K2', provider: 'OpenRouter' },
-  { id: 'openai/gpt-oss-20b:free', name: 'GPT OSS 20B', provider: 'OpenRouter' },
-  { id: 'openai/gpt-oss-120b:free', name: 'GPT OSS 120B', provider: 'OpenRouter' },
+  { id: 'moonshotai/kimi-k2', name: 'Kimi K2', provider: 'Groq' },
+  { id: 'qwen-qwq-32b', name: 'Qwen 3 32B', provider: 'Groq' },
+  { id: 'openai/gpt-oss-120b', name: 'GPT OSS 120B', provider: 'Groq' },
   { id: 'qwen/qwen-2.5-72b-instruct:free', name: 'Qwen 2.5 72B', provider: 'OpenRouter' },
+  { id: 'qwen/qwen3-coder-480b-a35b:free', name: 'Qwen3 Coder 480B', provider: 'OpenRouter' },
 ];
 
 export default function ChatInterface({
