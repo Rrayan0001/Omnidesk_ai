@@ -61,10 +61,11 @@ export default function ToolsMenu({
             color: 'text-primary', // Professional monochrome
             subItems: [
                 { id: 'llama-3.3-70b-versatile', label: 'Llama 3.3 70B' },
-                { id: 'qwen/qwen-2.5-72b-instruct', label: 'Qwen 2.5 72B' },
-                { id: 'x-ai/grok-4.1-fast:free', label: 'Grok 4.1 Fast' },
-                { id: 'moonshotai/kimi-k2-instruct', label: 'Moonshot Kimi K2' },
-                { id: 'openai/gpt-oss-120b', label: 'GPT-OSS 120B' },
+                { id: 'qwen/qwen3-coder-480b-a35b:free', label: 'Qwen3 Coder 480B' },
+                { id: 'moonshotai/kimi-k2-0711:free', label: 'Kimi K2' },
+                { id: 'openai/gpt-oss-20b:free', label: 'GPT OSS 20B' },
+                { id: 'openai/gpt-oss-120b:free', label: 'GPT OSS 120B' },
+                { id: 'qwen/qwen-2.5-72b-instruct:free', label: 'Qwen 2.5 72B' },
             ]
         },
         {

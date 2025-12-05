@@ -50,7 +50,7 @@ export default function ChatInterface({
 
   const [currentMode, setCurrentMode] = useState('chat'); // Default: 'chat' (was 'council')
   const [currentRoom, setCurrentRoom] = useState('decision');
-  const [currentModel, setCurrentModel] = useState('x-ai/grok-4.1-fast:free'); // Default: Grok 4.1 Fast
+  const [currentModel, setCurrentModel] = useState('llama-3.3-70b-versatile'); // Default: Llama 3.3 70B
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
