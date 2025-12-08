@@ -1,9 +1,12 @@
 """Configuration for the LLM Council."""
 
-import os
+from pathlib import Path
 from dotenv import load_dotenv
+import os
 
-load_dotenv()
+# Load .env from project root (one level up from backend/)
+env_path = Path(__file__).resolve().parent.parent / ".env"
+load_dotenv(dotenv_path=env_path)
 
 # API Keys
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
@@ -18,19 +21,19 @@ COUNCIL_MODELS = [
         "name": "Llama 3.3 70B"
     },
     {
-        "id": "moonshotai/kimi-k2",
+        "id": "moonshotai/kimi-k2-instruct-0905",
         "provider": "groq",
         "name": "Kimi K2"
     },
     {
-        "id": "qwen-qwq-32b",
-        "provider": "groq",
-        "name": "Qwen 3 32B"
+        "id": "openai/gpt-oss-20b",
+        "provider": "openrouter",
+        "name": "GPT OSS 20B"
     },
     {
-        "id": "qwen/qwen-2.5-72b-instruct:free",
+        "id": "google/gemma-3-27b-it:free",
         "provider": "openrouter",
-        "name": "Qwen 2.5 72B"
+        "name": "Gemma 3 27B"
     },
 ]
 
@@ -42,14 +45,14 @@ CHAT_MODELS = [
         "name": "Llama 3.3 70B"
     },
     {
-        "id": "moonshotai/kimi-k2",
+        "id": "moonshotai/kimi-k2-instruct-0905",
         "provider": "groq",
         "name": "Kimi K2"
     },
     {
-        "id": "qwen-qwq-32b",
-        "provider": "groq",
-        "name": "Qwen 3 32B"
+        "id": "openai/gpt-oss-20b",
+        "provider": "openrouter",
+        "name": "GPT OSS 20B"
     },
     {
         "id": "openai/gpt-oss-120b",
@@ -57,15 +60,10 @@ CHAT_MODELS = [
         "name": "GPT OSS 120B"
     },
     {
-        "id": "qwen/qwen-2.5-72b-instruct:free",
+        "id": "google/gemma-3-27b-it:free",
         "provider": "openrouter",
-        "name": "Qwen 2.5 72B"
+        "name": "Gemma 3 27B"
     },
-    {
-        "id": "qwen/qwen3-coder-480b-a35b:free",
-        "provider": "openrouter",
-        "name": "Qwen3 Coder 480B"
-    }
 ]
 
 # Image Generation Model

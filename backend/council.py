@@ -184,10 +184,10 @@ Provide a clear, well-reasoned final answer that represents the council's collec
     response = await query_model(chairman, messages)
 
     if response is None:
-        # Fallback if chairman fails
+        # Fallback if chairman fails (usually due to payload size limits)
         return {
             "model": chairman["name"],
-            "response": "Error: Unable to generate final synthesis."
+            "response": "🤔 Oops! The council's responses were so comprehensive that our chairman got a bit overwhelmed! This usually happens with complex questions that generate long answers.\n\n**What you can try:**\n• Check the individual perspectives above - they're still full of great insights!\n• Try asking a more focused question\n• Break your question into smaller parts\n\nThe council members did their best to help you above! 💡"
         }
 
     return {

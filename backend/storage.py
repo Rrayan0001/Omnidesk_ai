@@ -1,131 +1,105 @@
-"""JSON-based storage for conversations."""
+"""Supabase-based storage for conversations."""
 
-import json
-import os
-from datetime import datetime
+import logging
 from typing import List, Dict, Any, Optional
-from pathlib import Path
-from .config import DATA_DIR
+from datetime import datetime
+from .supabase_client import supabase
 
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-def ensure_data_dir():
-    """Ensure the data directory exists."""
-    Path(DATA_DIR).mkdir(parents=True, exist_ok=True)
-
-
-def get_conversation_path(conversation_id: str) -> str:
-    """Get the file path for a conversation."""
-    return os.path.join(DATA_DIR, f"{conversation_id}.json")
-
-
-def create_conversation(conversation_id: str) -> Dict[str, Any]:
+def create_conversation(conversation_id: str, user_id: str) -> Dict[str, Any]:
     """
-    Create a new conversation.
-
-    Args:
-        conversation_id: Unique identifier for the conversation
-
-    Returns:
-        New conversation dict
+    Create a new conversation in Supabase.
     """
-    ensure_data_dir()
-
-    conversation = {
-        "id": conversation_id,
-        "created_at": datetime.utcnow().isoformat(),
-        "title": "New Chat",
-        "messages": []
-    }
-
-    # Save to file
-    path = get_conversation_path(conversation_id)
-    with open(path, 'w') as f:
-        json.dump(conversation, f, indent=2)
-
-    return conversation
-
+    try:
+        data = {
+            "id": conversation_id,
+            "user_id": user_id,
+            "title": "New Chat",
+            "created_at": datetime.utcnow().isoformat()
+        }
+        supabase.table("conversations").insert(data).execute()
+        return {**data, "messages": []}
+    except Exception as e:
+        logger.error(f"Error creating conversation: {e}")
+        raise e
 
 def get_conversation(conversation_id: str) -> Optional[Dict[str, Any]]:
     """
-    Load a conversation from storage.
-
-    Args:
-        conversation_id: Unique identifier for the conversation
-
-    Returns:
-        Conversation dict or None if not found
+    Load a conversation and its messages from Supabase.
     """
-    path = get_conversation_path(conversation_id)
-
-    if not os.path.exists(path):
+    try:
+        # Fetch conversation metadata
+        resp = supabase.table("conversations").select("*").eq("id", conversation_id).execute()
+        if not resp.data:
+            return None
+        conv = resp.data[0]
+        
+        # Fetch messages
+        msg_resp = supabase.table("messages").select("*").eq("conversation_id", conversation_id).order("created_at").execute()
+        messages = msg_resp.data if msg_resp.data else []
+        
+        return {
+            "id": conv["id"],
+            "created_at": conv["created_at"],
+            "title": conv.get("title", "New Chat"),
+            "messages": messages
+        }
+    except Exception as e:
+        logger.error(f"Error getting conversation: {e}")
         return None
 
-    with open(path, 'r') as f:
-        return json.load(f)
-
-
-def save_conversation(conversation: Dict[str, Any]):
+def list_conversations(user_id: str) -> List[Dict[str, Any]]:
     """
-    Save a conversation to storage.
-
-    Args:
-        conversation: Conversation dict to save
+    List all conversations for a specific user (metadata only).
     """
-    ensure_data_dir()
-
-    path = get_conversation_path(conversation['id'])
-    with open(path, 'w') as f:
-        json.dump(conversation, f, indent=2)
-
-
-def list_conversations() -> List[Dict[str, Any]]:
-    """
-    List all conversations (metadata only).
-
-    Returns:
-        List of conversation metadata dicts
-    """
-    ensure_data_dir()
-
-    conversations = []
-    for filename in os.listdir(DATA_DIR):
-        if filename.endswith('.json'):
-            path = os.path.join(DATA_DIR, filename)
-            with open(path, 'r') as f:
-                data = json.load(f)
-                # Return metadata only
-                conversations.append({
-                    "id": data["id"],
-                    "created_at": data["created_at"],
-                    "title": data.get("title", "New Chat"),
-                    "message_count": len(data["messages"])
-                })
-
-    # Sort by creation time, newest first
-    conversations.sort(key=lambda x: x["created_at"], reverse=True)
-
-    return conversations
-
+    try:
+        # Fetch conversations for user
+        resp = supabase.table("conversations").select("*").eq("user_id", user_id).order("created_at", desc=True).execute()
+        conversations = resp.data if resp.data else []
+        
+        # For the list view, we often need message count. 
+        # This might be expensive to query individually. 
+        # For now, we'll just return metadata and maybe a placeholder count or join if needed.
+        # Supabase API allows .select('*, messages(count)') but syntax is tricky with py client.
+        # We will keep it simple: return convs, message_count=0 if not easily available, or fetch counts.
+        
+        results = []
+        for conv in conversations:
+            # Getting exact count for each might be slow (N+1), but OK for small scale.
+            # Optimization: could use a view or rpc later.
+            count_resp = supabase.table("messages").select("id", count="exact").eq("conversation_id", conv["id"]).execute()
+            count = count_resp.count if count_resp.count is not None else 0
+            
+            results.append({
+                "id": conv["id"],
+                "created_at": conv["created_at"],
+                "title": conv.get("title", "New Chat"),
+                "message_count": count
+            })
+            
+        return results
+    except Exception as e:
+        logger.error(f"Error listing conversations: {e}")
+        return []
 
 def add_user_message(conversation_id: str, content: str):
     """
-    Add a user message to a conversation.
-
-    Args:
-        conversation_id: Conversation identifier
-        content: User message content
+    Add a user message to Supabase.
     """
-    conversation = get_conversation(conversation_id)
-    if conversation is None:
-        raise ValueError(f"Conversation {conversation_id} not found")
-
-    conversation["messages"].append({
-        "role": "user",
-        "content": content
-    })
-
-    save_conversation(conversation)
-
+    try:
+        message = {
+            "conversation_id": conversation_id,
+            "role": "user",
+            "content": content,
+            "created_at": datetime.utcnow().isoformat()
+        }
+        supabase.table("messages").insert(message).execute()
+    except Exception as e:
+        logger.error(f"Error adding user message: {e}")
+        raise e
 
 def add_assistant_message(
     conversation_id: str,
@@ -135,72 +109,54 @@ def add_assistant_message(
     metadata: Optional[Dict[str, Any]] = None
 ):
     """
-    Add an assistant message with all 3 stages to a conversation.
-
-    Args:
-        conversation_id: Conversation identifier
-        stage1: List of individual model responses
-        stage2: List of model rankings
-        stage3: Final synthesized response
-        metadata: Optional metadata (e.g., mode, model)
+    Add an assistant message with all stages to Supabase.
     """
-    conversation = get_conversation(conversation_id)
-    if conversation is None:
-        raise ValueError(f"Conversation {conversation_id} not found")
-
-    message = {
-        "role": "assistant",
-        "stage1": stage1,
-        "stage2": stage2,
-        "stage3": stage3
-    }
-    
-    if metadata:
-        message["metadata"] = metadata
-
-    conversation["messages"].append(message)
-
-    save_conversation(conversation)
-
+    try:
+        message = {
+            "conversation_id": conversation_id,
+            "role": "assistant",
+            "content": stage3.get("response", ""), # Main content
+            "stage1": stage1,
+            "stage2": stage2,
+            "stage3": stage3,
+            "created_at": datetime.utcnow().isoformat()
+        }
+        
+        if metadata:
+            message["metadata"] = metadata
+            
+        supabase.table("messages").insert(message).execute()
+    except Exception as e:
+        logger.error(f"Error adding assistant message: {e}")
+        raise e
 
 def update_conversation_title(conversation_id: str, title: str):
     """
     Update the title of a conversation.
-
-    Args:
-        conversation_id: Conversation identifier
-        title: New title for the conversation
     """
-    conversation = get_conversation(conversation_id)
-    if conversation is None:
-        raise ValueError(f"Conversation {conversation_id} not found")
-
-    conversation["title"] = title
-    save_conversation(conversation)
-
+    try:
+        supabase.table("conversations").update({"title": title}).eq("id", conversation_id).execute()
+    except Exception as e:
+        logger.error(f"Error updating title: {e}")
+        raise e
 
 def delete_conversation(conversation_id: str) -> bool:
     """
-    Delete a conversation.
-
-    Args:
-        conversation_id: Conversation identifier
-
-    Returns:
-        True if deleted, False if not found
+    Delete a conversation (cascades to messages).
     """
-    path = get_conversation_path(conversation_id)
-    if os.path.exists(path):
-        os.remove(path)
-        return True
-    return False
+    try:
+        # Check if exists first? Or just delete.
+        resp = supabase.table("conversations").delete().eq("id", conversation_id).execute()
+        return len(resp.data) > 0
+    except Exception as e:
+        logger.error(f"Error deleting conversation: {e}")
+        return False
 
-
-def delete_all_conversations():
-    """Delete all conversations."""
-    ensure_data_dir()
-    for filename in os.listdir(DATA_DIR):
-        if filename.endswith('.json'):
-            path = os.path.join(DATA_DIR, filename)
-            os.remove(path)
-
+def delete_all_conversations(user_id: str):
+    """
+    Delete all conversations for a user.
+    """
+    try:
+        supabase.table("conversations").delete().eq("user_id", user_id).execute()
+    except Exception as e:
+        logger.error(f"Error deleting all conversations: {e}")

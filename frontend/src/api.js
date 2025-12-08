@@ -1,15 +1,35 @@
 /**
  * API client for the LLM Council backend.
  */
+import { supabase } from './lib/supabase';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8001';
+
+// Helper for authenticated requests
+const fetchAPI = async (endpoint, options = {}) => {
+  const { data: { session } } = await supabase.auth.getSession();
+  const userId = session?.user?.id;
+
+  const headers = {
+    ...options.headers,
+  };
+
+  if (userId) {
+    headers['X-User-ID'] = userId;
+  }
+
+  return fetch(`${API_BASE}${endpoint}`, {
+    ...options,
+    headers,
+  });
+};
 
 export const api = {
   /**
    * List all conversations.
    */
   async listConversations() {
-    const response = await fetch(`${API_BASE}/api/conversations`);
+    const response = await fetchAPI('/api/conversations');
     if (!response.ok) {
       throw new Error('Failed to list conversations');
     }
@@ -20,7 +40,7 @@ export const api = {
    * Create a new conversation.
    */
   async createConversation() {
-    const response = await fetch(`${API_BASE}/api/conversations`, {
+    const response = await fetchAPI('/api/conversations', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -37,9 +57,7 @@ export const api = {
    * Get a specific conversation.
    */
   async getConversation(conversationId) {
-    const response = await fetch(
-      `${API_BASE}/api/conversations/${conversationId}`
-    );
+    const response = await fetchAPI(`/api/conversations/${conversationId}`);
     if (!response.ok) {
       throw new Error('Failed to get conversation');
     }
@@ -53,8 +71,8 @@ export const api = {
    * @param {object} options - { mode, room, model }
    */
   async sendMessage(conversationId, content, options = {}) {
-    const response = await fetch(
-      `${API_BASE}/api/conversations/${conversationId}/message`,
+    const response = await fetchAPI(
+      `/api/conversations/${conversationId}/message`,
       {
         method: 'POST',
         headers: {
@@ -89,8 +107,8 @@ export const api = {
       options = {};
     }
 
-    const response = await fetch(
-      `${API_BASE}/api/conversations/${conversationId}/message/stream`,
+    const response = await fetchAPI(
+      `/api/conversations/${conversationId}/message/stream`,
       {
         method: 'POST',
         headers: {
@@ -137,8 +155,8 @@ export const api = {
    * Delete a specific conversation.
    */
   async deleteConversation(conversationId) {
-    const response = await fetch(
-      `${API_BASE}/api/conversations/${conversationId}`,
+    const response = await fetchAPI(
+      `/api/conversations/${conversationId}`,
       {
         method: 'DELETE',
       }
@@ -153,7 +171,7 @@ export const api = {
    * Delete all conversations.
    */
   async deleteAllConversations() {
-    const response = await fetch(`${API_BASE}/api/conversations`, {
+    const response = await fetchAPI('/api/conversations', {
       method: 'DELETE',
     });
     if (!response.ok) {
@@ -166,7 +184,7 @@ export const api = {
    * List all available rooms.
    */
   async listRooms() {
-    const response = await fetch(`${API_BASE}/api/rooms`);
+    const response = await fetchAPI('/api/rooms');
     if (!response.ok) {
       throw new Error('Failed to list rooms');
     }
@@ -177,7 +195,7 @@ export const api = {
    * Detect room from prompt.
    */
   async detectRoom(prompt) {
-    const response = await fetch(`${API_BASE}/api/rooms/detect`, {
+    const response = await fetchAPI('/api/rooms/detect', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -186,6 +204,77 @@ export const api = {
     });
     if (!response.ok) {
       throw new Error('Failed to detect room');
+    }
+    return response.json();
+  },
+
+  /**
+   * Upload a file for analysis.
+   * Supports PDF, DOCX, PPTX, and image files (PNG, JPEG, GIF, BMP, WEBP)
+   */
+  async uploadFile(file, prompt = 'Please analyze this file and provide a summary.') {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('prompt', prompt);
+
+    // fetchAPI handles headers, but FormData shouldn't have Content-Type set manually (browser does it with boundary)
+    // fetchAPI spreads headers. If headers is passed empty, it's fine.
+    // However, fetchAPI adds X-User-ID to headers.
+
+    // We need to call fetchAPI carefully here.
+    // fetchAPI merges options.headers. 
+
+    const response = await fetchAPI('/api/file/upload', {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Failed to upload file');
+    }
+    return response.json();
+  },
+
+  /**
+   * Extract text content from a file (without LLM analysis).
+   * Supports PDF, DOCX, PPTX, and image files
+   */
+  async extractFileContent(file) {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await fetchAPI('/api/file/extract', {
+      method: 'POST',
+      body: formData,
+    });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Failed to extract file content');
+    }
+    return response.json();
+  },
+
+  /**
+   * Analyze pre-extracted file content with a user prompt.
+   * Uses GPT OSS 120B for analysis.
+   */
+  async analyzeFileContent(extractedText, prompt, filename, fileType) {
+    const response = await fetchAPI('/api/file/analyze', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        extracted_text: extractedText,
+        prompt: prompt,
+        filename: filename,
+        file_type: fileType,
+      }),
+    });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Failed to analyze file');
     }
     return response.json();
   },

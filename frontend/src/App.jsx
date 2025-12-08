@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react';
 import Sidebar from './components/Sidebar';
 import ChatInterface from './components/ChatInterface';
 import { api } from './api';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { Auth } from './components/Auth';
 
-function App() {
+function Dashboard() {
   const [conversations, setConversations] = useState([]);
   const [currentConversationId, setCurrentConversationId] = useState(null);
   const [currentConversation, setCurrentConversation] = useState(null);
@@ -327,6 +329,77 @@ function App() {
       options = { room: options };
     }
 
+    // Handle file uploads with attached file analysis
+    if (options.mode === 'file' && options.attachedFile) {
+      const userMessage = { role: 'user', content };
+
+      // Add user message and loading assistant message
+      const loadingAssistantMessage = {
+        role: 'assistant',
+        stage1: null,
+        stage2: null,
+        stage3: null,
+        metadata: { mode: 'file', model: 'GPT OSS 120B' },
+        loading: { stage1: false, stage2: false, stage3: true },
+      };
+
+      setCurrentConversation((prev) => ({
+        ...prev,
+        messages: [...prev.messages, userMessage, loadingAssistantMessage],
+      }));
+
+      try {
+        // Call the analyze endpoint with the pre-extracted text
+        const analysisResult = await api.analyzeFileContent(
+          options.attachedFile.extractedText,
+          content,
+          options.attachedFile.filename,
+          options.attachedFile.type
+        );
+
+        // Update with the analysis result
+        const finalAssistantMessage = {
+          role: 'assistant',
+          stage1: null,
+          stage2: null,
+          stage3: {
+            model: analysisResult.model || 'GPT OSS 120B',
+            response: analysisResult.analysis || 'Analysis complete.'
+          },
+          metadata: { mode: 'file', model: analysisResult.model || 'GPT OSS 120B' },
+          loading: null,
+        };
+
+        setCurrentConversation((prev) => ({
+          ...prev,
+          messages: [...prev.messages.slice(0, -1), finalAssistantMessage],
+        }));
+
+      } catch (error) {
+        console.error('File analysis error:', error);
+        // Update with error message
+        const errorMessage = {
+          role: 'assistant',
+          stage1: null,
+          stage2: null,
+          stage3: {
+            model: 'GPT OSS 120B',
+            response: `Sorry, I encountered an error analyzing your file: ${error.message}`
+          },
+          metadata: { mode: 'file', error: true },
+          loading: null,
+        };
+
+        setCurrentConversation((prev) => ({
+          ...prev,
+          messages: [...prev.messages.slice(0, -1), errorMessage],
+        }));
+      }
+
+      loadConversations();
+      return;
+    }
+
     // Check if this is the first message to trigger title refresh later
     const isFirstMessage = currentConversation?.messages.length === 0;
 
@@ -411,4 +484,16 @@ function App() {
   );
 }
 
-export default App;
+function AppContent() {
+  const { user } = useAuth();
+  if (!user) return <Auth />;
+  return <Dashboard />;
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
+  );
+}

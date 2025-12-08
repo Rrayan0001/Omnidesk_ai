@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { cn } from '@/lib/utils';
 
 import { TextShimmer } from '@/components/ui/text-shimmer';
@@ -103,7 +104,24 @@ export default function Stage1({ responses, isLoading }) {
         <div className="p-6 bg-card min-h-[150px]">
           <div className="markdown-content text-[15px] leading-relaxed text-foreground font-serif break-words overflow-wrap-anywhere overflow-x-hidden" style={{ wordWrap: 'break-word', overflowWrap: 'anywhere', maxWidth: '100%' }}>
             <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
               components={{
+                // Use div instead of p to avoid nesting issues with code blocks
+                p({ children }) {
+                  return <div className="mb-4 leading-loose tracking-wide">{children}</div>;
+                },
+                table({ children }) {
+                  return <div className="overflow-x-auto my-6 border border-border/40 rounded-lg"><table className="w-full text-sm text-left">{children}</table></div>;
+                },
+                thead({ children }) {
+                  return <thead className="bg-secondary/50 text-xs uppercase font-semibold text-muted-foreground">{children}</thead>;
+                },
+                th({ children }) {
+                  return <th className="px-4 py-3 border-b border-border/40 whitespace-nowrap">{children}</th>;
+                },
+                td({ children }) {
+                  return <td className="px-4 py-3 border-b border-border/10">{children}</td>;
+                },
                 code({ node, inline, className, children, ...props }) {
                   const match = /language-(\w+)/.exec(className || '');
                   const language = match ? match[1] : 'text';

@@ -1,10 +1,10 @@
 """FastAPI backend for LLM Council."""
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, UploadFile, File, Header
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 import uuid
 import json
 import asyncio
@@ -14,6 +14,7 @@ from .council import run_full_council, generate_conversation_title, stage1_colle
 from .classifier import detect_room, is_simple_query
 from .config import ROOMS, DEFAULT_ROOM, CHAT_MODELS
 from .llm_client import query_model
+from .file_processor import process_file, is_supported_file, SUPPORTED_EXTENSIONS
 
 app = FastAPI(title="LLM Council API")
 
@@ -94,6 +95,178 @@ async def list_models():
     return {"models": CHAT_MODELS}
 
 
+# File Analysis Model (GPT OSS 120B on Groq)
+FILE_ANALYSIS_MODEL = {
+    "id": "openai/gpt-oss-120b",
+    "provider": "groq",
+    "name": "GPT OSS 120B"
+}
+
+
+@app.post("/api/file/upload")
+async def upload_file(file: UploadFile = File(...), prompt: str = "Please analyze this file and provide a summary."):
+    """
+    Upload and analyze a file (PDF, DOCX, PPTX, or images).
+    """
+    # Validate file type
+    if not is_supported_file(file.filename):
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unsupported file type. Supported types: {', '.join(SUPPORTED_EXTENSIONS)}"
+        )
+    
+    # Read file content
+    file_content = await file.read()
+    
+    # Process the file
+    result = process_file(file_content, file.filename)
+    
+    if not result['success']:
+        raise HTTPException(status_code=400, detail=result['error'])
+    
+    # Prepare prompt based on file type
+    if result['type'] == 'document':
+        # For documents, send extracted text to the model
+        analysis_prompt = f"""The user has uploaded a document named "{result['filename']}". Here is the extracted text:
+
+---
+{result['text'][:15000]}  # Limit text to avoid token limits
+---
+
+User's request: {prompt}
+
+Please analyze this document and respond to the user's request."""
+        
+        messages = [{"role": "user", "content": analysis_prompt}]
+        response = await query_model(FILE_ANALYSIS_MODEL, messages)
+        
+        if response is None:
+            return {
+                "success": True,
+                "type": "document",
+                "filename": result['filename'],
+                "analysis": "Sorry, I couldn't analyze this document. The file might be too large or complex.",
+                "extracted_text_preview": result['text'][:500] + "..." if len(result['text']) > 500 else result['text']
+            }
+        
+        return {
+            "success": True,
+            "type": "document",
+            "filename": result['filename'],
+            "analysis": response.get('content', 'No analysis available'),
+            "extracted_text_preview": result['text'][:500] + "..." if len(result['text']) > 500 else result['text']
+        }
+    
+    else:  # Image
+        # For images, send the base64 data
+        # Note: Many models don't support vision yet, so we'll describe what we received
+        image_prompt = f"""The user has uploaded an image named "{result['filename']}".
+
+User's request: {prompt}
+
+Please help the user with their request about this image."""        
+        messages = [{"role": "user", "content": image_prompt}]
+        response = await query_model(FILE_ANALYSIS_MODEL, messages)
+        
+        return {
+            "success": True,
+            "type": "image",
+            "filename": result['filename'],
+            "analysis": response.get('content', 'Image received successfully!') if response else "Image uploaded! Vision analysis is not available for this model.",
+            "mime_type": result['mime_type']
+        }
+
+
+@app.post("/api/file/extract")
+async def extract_file_content(file: UploadFile = File(...)):
+    """
+    Extract text content from a file without LLM analysis.
+    Returns the extracted text for the frontend to use.
+    """
+    # Validate file type
+    if not is_supported_file(file.filename):
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unsupported file type. Supported types: {', '.join(SUPPORTED_EXTENSIONS)}"
+        )
+    
+    # Read file content
+    file_content = await file.read()
+    
+    # Process the file
+    result = process_file(file_content, file.filename)
+    
+    if not result['success']:
+        raise HTTPException(status_code=400, detail=result['error'])
+    
+    if result['type'] == 'document':
+        return {
+            "success": True,
+            "type": "document",
+            "filename": result['filename'],
+            "text": result['text']
+        }
+    else:  # Image
+        return {
+            "success": True,
+            "type": "image",
+            "filename": result['filename'],
+            "text": f"[Image: {result['filename']}]",
+            "mime_type": result['mime_type'],
+            "image_data": result.get('image_data', '')[:100] + '...'  # Truncated preview
+        }
+
+
+class FileAnalysisRequest(BaseModel):
+    """Request to analyze pre-extracted file content."""
+    extracted_text: str
+    prompt: str
+    filename: str
+    file_type: str  # 'document' or 'image'
+
+
+@app.post("/api/file/analyze")
+async def analyze_file_content(request: FileAnalysisRequest):
+    """
+    Analyze pre-extracted file content with a user prompt.
+    Uses GPT OSS 120B (Groq) for analysis.
+    """
+    try:
+        if request.file_type == 'document':
+            analysis_prompt = f"""The following is extracted text from a document named "{request.filename}":
+
+---
+{request.extracted_text}
+---
+
+User's request: {request.prompt}
+
+Please help the user with their request based on the document content above."""
+        else:  # image
+            analysis_prompt = f"""The user has uploaded an image named "{request.filename}".
+
+User's request: {request.prompt}
+
+Please help the user with their request about this image."""
+
+        messages = [{"role": "user", "content": analysis_prompt}]
+        response = await query_model(FILE_ANALYSIS_MODEL, messages)
+
+        if response and response.get('content'):
+            return {
+                "success": True,
+                "analysis": response['content'],
+                "model": FILE_ANALYSIS_MODEL.get('name', 'GPT OSS 120B')
+            }
+        else:
+            return {
+                "success": False,
+                "error": "Failed to get analysis from the model"
+            }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 class DetectRoomRequest(BaseModel):
     """Request to detect room from prompt."""
     prompt: str
@@ -113,16 +286,20 @@ async def detect_room_endpoint(request: DetectRoomRequest):
 
 
 @app.get("/api/conversations", response_model=List[ConversationMetadata])
-async def list_conversations():
+async def list_conversations(x_user_id: Optional[str] = Header(None, alias="X-User-ID")):
     """List all conversations (metadata only)."""
-    return storage.list_conversations()
+    if not x_user_id:
+        x_user_id = "default_user"
+    return storage.list_conversations(user_id=x_user_id)
 
 
 @app.post("/api/conversations", response_model=Conversation)
-async def create_conversation(request: CreateConversationRequest):
+async def create_conversation(request: CreateConversationRequest, x_user_id: Optional[str] = Header(None, alias="X-User-ID")):
     """Create a new conversation."""
+    if not x_user_id:
+        x_user_id = "default_user"
     conversation_id = str(uuid.uuid4())
-    conversation = storage.create_conversation(conversation_id)
+    conversation = storage.create_conversation(conversation_id, user_id=x_user_id)
     return conversation
 
 
@@ -398,10 +575,12 @@ async def delete_conversation(conversation_id: str):
 
 
 @app.delete("/api/conversations")
-async def delete_all_conversations():
-    """Delete all conversations."""
-    storage.delete_all_conversations()
-    return {"status": "all_deleted"}
+async def delete_all_conversations(x_user_id: Optional[str] = Header(None, alias="X-User-ID")):
+    """Delete all conversations for the specific user."""
+    if not x_user_id:
+        x_user_id = "default_user"
+    storage.delete_all_conversations(user_id=x_user_id)
+    return {"status": "success", "message": "All conversations deleted"}
 
 
 if __name__ == "__main__":

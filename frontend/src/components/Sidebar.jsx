@@ -1,8 +1,9 @@
-import { Plus, MessageSquare, Trash2, Sun, Moon, X, Cpu, PanelLeft, ChevronRight } from 'lucide-react';
+import { Plus, MessageSquare, Trash2, Sun, Moon, X, Cpu, PanelLeft, ChevronRight, LogOut } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useRoom } from "@/contexts/RoomContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { useEffect, useState } from "react";
 import { api } from "@/api";
 import { DeleteConfirmDialog } from "./DeleteConfirmDialog";
@@ -25,6 +26,7 @@ export default function Sidebar({
 }) {
   const { theme, toggleTheme } = useTheme();
   const { currentRoom, setCurrentRoom, rooms, setRooms } = useRoom();
+  const { signOut } = useAuth();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [conversationToDelete, setConversationToDelete] = useState(null);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -69,7 +71,7 @@ export default function Sidebar({
             <img
               src={theme === 'dark' ? "/logo.png" : "/logo-light.png"}
               alt="OmniDesk AI"
-              className="w-7 h-7 object-contain shrink-0"
+              className="w-9 h-9 object-contain shrink-0"
             />
             {(isExpanded || isOpen) && <span className="text-base font-bold tracking-tight">OmniDesk</span>}
           </div>
@@ -169,6 +171,19 @@ export default function Sidebar({
           >
             {theme === 'dark' ? <Sun className="w-6 h-6 shrink-0" /> : <Moon className="w-6 h-6 shrink-0" />}
             {(isExpanded || isOpen) && <span className="text-[15px]">{theme === 'dark' ? 'Light' : 'Dark'} Mode</span>}
+          </button>
+
+          {/* Logout Button */}
+          <button
+            onClick={signOut}
+            className={cn(
+              "h-12 flex items-center rounded-lg hover:bg-destructive/20 text-muted-foreground hover:text-destructive transition-all",
+              (isExpanded || isOpen) ? "w-full justify-start gap-3 px-3" : "w-12 mx-auto justify-center"
+            )}
+            aria-label="Logout"
+          >
+            <LogOut className="w-6 h-6 shrink-0" />
+            {(isExpanded || isOpen) && <span className="text-[15px]">Logout</span>}
           </button>
         </div>
       </div>

@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
-import { Send, Loader2, PanelLeft, Trash2, Sparkles, Bot, Users, Cpu, Image as ImageIcon, Sun, Moon } from 'lucide-react';
+import { Send, Loader2, PanelLeft, Trash2, Sparkles, Bot, Users, Cpu, Image as ImageIcon, Sun, Moon, Upload, X, FileText, ImageIcon as FileImage } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { useTheme } from "@/contexts/ThemeContext";
 // import { ChatInput, ChatInputTextArea, ChatInputSubmit } from '@/components/ui/chat-input';
 import RoomDetectionModal from './RoomDetectionModal';
@@ -16,11 +17,10 @@ import { CodeBlockCode } from '@/components/ui/code-block';
 // Import chat models for display
 const CHAT_MODELS = [
   { id: 'llama-3.3-70b-versatile', name: 'Llama 3.3 70B', provider: 'Groq' },
-  { id: 'moonshotai/kimi-k2', name: 'Kimi K2', provider: 'Groq' },
-  { id: 'qwen-qwq-32b', name: 'Qwen 3 32B', provider: 'Groq' },
+  { id: 'moonshotai/kimi-k2-instruct-0905', name: 'Kimi K2', provider: 'Groq' },
+  { id: 'openai/gpt-oss-20b', name: 'GPT OSS 20B', provider: 'OpenRouter' },
   { id: 'openai/gpt-oss-120b', name: 'GPT OSS 120B', provider: 'Groq' },
-  { id: 'qwen/qwen-2.5-72b-instruct:free', name: 'Qwen 2.5 72B', provider: 'OpenRouter' },
-  { id: 'qwen/qwen3-coder-480b-a35b:free', name: 'Qwen3 Coder 480B', provider: 'OpenRouter' },
+  { id: 'google/gemma-3-27b-it:free', name: 'Gemma 3 27B', provider: 'OpenRouter' },
 ];
 
 export default function ChatInterface({
@@ -39,6 +39,12 @@ export default function ChatInterface({
   const toolsButtonRef = useRef(null);
   const messagesEndRef = useRef(null);
   const textareaRef = useRef(null);
+  const fileInputRef = useRef(null);
+
+  // File upload state
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState(null);
+  const [attachedFile, setAttachedFile] = useState(null); // {filename, extractedText, type}
 
   // Auto-resize textarea when input changes
   useEffect(() => {
@@ -64,9 +70,24 @@ export default function ChatInterface({
 
   const handleSubmit = async () => {
     const content = input.trim();
-    if (content && !isLoading && !isSubmittingRef.current) {
+    if ((content || attachedFile) && !isLoading && !isSubmittingRef.current) {
       isSubmittingRef.current = true;
       setInput(''); // Clear input immediately to prevent double-submit race conditions
+
+      // If we have an attached file, send as file mode
+      if (attachedFile) {
+        const fileContent = attachedFile.extractedText;
+        const userPrompt = content || 'Please analyze this file and provide a summary.';
+
+        onSendMessage(userPrompt, {
+          mode: 'file',
+          attachedFile: attachedFile
+        });
+
+        setAttachedFile(null); // Clear attachment after sending
+        isSubmittingRef.current = false;
+        return;
+      }
 
       if (currentMode === 'council') {
         // Detect room first
@@ -115,6 +136,63 @@ export default function ChatInterface({
       e.stopPropagation();
       handleSubmit();
     }
+  };
+
+  // Handle file upload - stores as attachment, doesn't send immediately
+  const handleFileUpload = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    const allowedTypes = ['.pdf', '.docx', '.pptx', '.png', '.jpg', '.jpeg', '.gif', '.bmp', '.webp'];
+    const fileExt = '.' + file.name.split('.').pop().toLowerCase();
+    if (!allowedTypes.includes(fileExt)) {
+      setUploadError(`Unsupported file type. Allowed: PDF, DOCX, PPTX, PNG, JPEG, GIF, BMP, WEBP`);
+      setTimeout(() => setUploadError(null), 5000);
+      return;
+    }
+
+    setIsUploading(true);
+    setUploadError(null);
+
+    try {
+      // Extract file content using the backend
+      const result = await api.extractFileContent(file);
+
+      // Store as attachment - user will add message and send later
+      setAttachedFile({
+        filename: file.name,
+        extractedText: result.text || result.analysis,
+        type: result.type
+      });
+
+    } catch (error) {
+      console.error('File upload error:', error);
+      setUploadError(error.message || 'Failed to process file');
+      setTimeout(() => setUploadError(null), 5000);
+    } finally {
+      setIsUploading(false);
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  // Trigger file picker when file mode is selected
+  const handleModeChange = (mode, subItemId) => {
+    if (mode === 'file') {
+      // Trigger file picker
+      fileInputRef.current?.click();
+    } else {
+      setCurrentMode(mode);
+      if (mode === 'council' && subItemId) {
+        setCurrentRoom(subItemId);
+      } else if (mode === 'chat' && subItemId) {
+        setCurrentModel(subItemId);
+      }
+    }
+    setIsToolsMenuOpen(false);
   };
 
   return (
@@ -166,7 +244,7 @@ export default function ChatInterface({
               </div>
             </div>
           ) : (
-            <div className="max-w-3xl mx-auto p-4 md:p-8 space-y-8 pb-32">
+            <div className="max-w-5xl mx-auto p-4 md:p-8 space-y-8 pb-32">
               {conversation.messages.map((msg, idx) => (
                 <div
                   key={idx}
@@ -182,11 +260,17 @@ export default function ChatInterface({
                     <div className="w-full min-w-0 space-y-6 overflow-x-hidden">
                       {/* Check message mode from metadata */}
                       {
-                        msg.metadata?.mode === 'chat' || msg.metadata?.mode === 'image' ? (
-                          /* Simple Chat/Image Message Bubble */
+                        msg.metadata?.mode === 'chat' || msg.metadata?.mode === 'image' || msg.metadata?.mode === 'file' ? (
+                          /* Simple Chat/Image/File Message Bubble */
                           <div className="flex items-start gap-3">
                             <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 mt-1">
-                              {msg.metadata?.mode === 'image' ? <Sparkles className="w-4 h-4 text-primary" /> : <Bot className="w-4 h-4" />}
+                              {msg.metadata?.mode === 'image' ? (
+                                <Sparkles className="w-4 h-4 text-primary" />
+                              ) : msg.metadata?.mode === 'file' ? (
+                                <FileText className="w-4 h-4 text-primary" />
+                              ) : (
+                                <Bot className="w-4 h-4" />
+                              )}
                             </div>
                             <div className="flex-1 min-w-0 space-y-2">
                               <div className="flex items-center gap-2">
@@ -202,13 +286,30 @@ export default function ChatInterface({
                                     duration={1.2}
                                     className="text-sm font-sans [--base-color:theme(colors.zinc.400)] [--base-gradient-color:theme(colors.zinc.200)] dark:[--base-color:theme(colors.zinc.600)] dark:[--base-gradient-color:theme(colors.zinc.400)]"
                                   >
-                                    {currentMode === 'image' ? 'Generating image...' : 'Thinking...'}
+                                    {currentMode === 'image' ? 'Generating image...' : currentMode === 'file' ? 'Analyzing file...' : 'Thinking...'}
                                   </TextShimmer>
                                 </div>
                               ) : (
                                 <div className="prose prose-invert prose-sm max-w-none text-muted-foreground leading-relaxed break-words overflow-wrap-anywhere overflow-x-hidden" style={{ wordWrap: 'break-word', overflowWrap: 'anywhere', maxWidth: '100%' }}>
                                   <ReactMarkdown
+                                    remarkPlugins={[remarkGfm]}
                                     components={{
+                                      // Use div instead of p to avoid nesting issues with code blocks
+                                      p({ children }) {
+                                        return <div className="mb-4 leading-loose tracking-wide">{children}</div>;
+                                      },
+                                      table({ children }) {
+                                        return <div className="overflow-x-auto my-6 border border-border/40 rounded-lg"><table className="w-full text-sm text-left">{children}</table></div>;
+                                      },
+                                      thead({ children }) {
+                                        return <thead className="bg-secondary/50 text-xs uppercase font-semibold text-muted-foreground">{children}</thead>;
+                                      },
+                                      th({ children }) {
+                                        return <th className="px-4 py-3 border-b border-border/40 whitespace-nowrap">{children}</th>;
+                                      },
+                                      td({ children }) {
+                                        return <td className="px-4 py-3 border-b border-border/10">{children}</td>;
+                                      },
                                       code({ node, inline, className, children, ...props }) {
                                         const match = /language-(\w+)/.exec(className || '');
                                         const language = match ? match[1] : 'text';
@@ -294,7 +395,7 @@ export default function ChatInterface({
         )}>
           <div className={cn(
             "relative mx-auto",
-            hasMessages ? "max-w-3xl" : "max-w-2xl"
+            hasMessages ? "max-w-5xl" : "max-w-2xl"
           )}>
             <div className="relative flex items-center gap-2 bg-secondary/40 rounded-[26px] px-3 py-3 focus-within:bg-secondary/60 transition-all duration-300 shadow-sm hover:shadow-md">
               {/* AI Tools Button */}
@@ -315,17 +416,39 @@ export default function ChatInterface({
                     onClose={() => setIsToolsMenuOpen(false)}
                     currentMode={currentMode}
                     triggerRef={toolsButtonRef}
-                    onModeChange={(mode, subMode) => {
-                      setCurrentMode(mode);
-                      if (mode === 'council' && subMode) setCurrentRoom(subMode);
-                      if (mode === 'chat' && subMode) setCurrentModel(subMode);
-                      setIsToolsMenuOpen(false);
-                    }}
+                    onModeChange={handleModeChange}
                   />
                 </div>
               )}
 
-              {/* Textarea */}
+              {/* Hidden file input */}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".pdf,.docx,.pptx,.png,.jpg,.jpeg,.gif,.bmp,.webp"
+                onChange={handleFileUpload}
+                className="hidden"
+              />
+
+              {/* Attached File Preview */}
+              {attachedFile && (
+                <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 border border-primary/20 rounded-full text-sm">
+                  {attachedFile.type === 'image' ? (
+                    <FileImage className="w-4 h-4 text-primary" />
+                  ) : (
+                    <FileText className="w-4 h-4 text-primary" />
+                  )}
+                  <span className="text-foreground max-w-[150px] truncate">{attachedFile.filename}</span>
+                  <button
+                    onClick={() => setAttachedFile(null)}
+                    className="p-0.5 hover:bg-primary/20 rounded-full transition-colors"
+                    title="Remove attachment"
+                  >
+                    <X className="w-3.5 h-3.5 text-muted-foreground hover:text-foreground" />
+                  </button>
+                </div>
+              )}
+
               {/* Textarea */}
               <textarea
                 ref={textareaRef}
@@ -346,7 +469,7 @@ export default function ChatInterface({
               <button
                 type="button"
                 onClick={handleSubmit}
-                disabled={isLoading || !input.trim()}
+                disabled={isLoading || (!input.trim() && !attachedFile)}
                 className="shrink-0 p-2 h-10 w-10 flex items-center justify-center bg-primary text-primary-foreground rounded-full hover:opacity-90 disabled:opacity-0 disabled:cursor-not-allowed transition-all duration-300 shadow-sm"
               >
                 {isLoading ? (
@@ -357,14 +480,26 @@ export default function ChatInterface({
               </button>
             </div>
             <div className="flex justify-between items-center mt-2 px-1">
-              <span className="text-[10px] font-medium text-muted-foreground/40 uppercase tracking-widest">
-                {currentMode === 'council'
-                  ? 'COUNCIL MODE'
-                  : currentMode === 'image'
-                    ? 'IMAGE GENERATION'
-                    : CHAT_MODELS.find(m => m.id === currentModel)?.name.toUpperCase() || 'CHAT MODE'
-                }
-              </span>
+              {uploadError && (
+                <span className="text-[10px] font-medium text-red-500">
+                  {uploadError}
+                </span>
+              )}
+              {isUploading && (
+                <span className="text-[10px] font-medium text-cyan-500 flex items-center gap-1">
+                  <Loader2 className="w-3 h-3 animate-spin" /> Uploading...
+                </span>
+              )}
+              {!uploadError && !isUploading && (
+                <span className="text-[10px] font-medium text-muted-foreground/40 uppercase tracking-widest">
+                  {currentMode === 'council'
+                    ? 'COUNCIL MODE'
+                    : currentMode === 'image'
+                      ? 'IMAGE GENERATION'
+                      : CHAT_MODELS.find(m => m.id === currentModel)?.name.toUpperCase() || 'CHAT MODE'
+                  }
+                </span>
+              )}
             </div>
           </div>
         </div>
