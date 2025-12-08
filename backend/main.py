@@ -23,8 +23,15 @@ import os
 # Enable CORS for local development and production
 allowed_origins_str = os.getenv("ALLOWED_ORIGINS", "")
 allowed_origins = [origin.strip() for origin in allowed_origins_str.split(",") if origin.strip()]
-# Add default local origins
-default_origins = ["http://localhost:5173", "http://localhost:3000", "http://localhost:1000", "http://localhost:10000"]
+# Add default local origins and production domains
+default_origins = [
+    "http://localhost:5173", 
+    "http://localhost:3000", 
+    "http://localhost:1000", 
+    "http://localhost:10000",
+    "https://omnideskai.roshanrayan.tech",
+    "https://omnidesk-ai.vercel.app",
+]
 allowed_origins.extend([o for o in default_origins if o not in allowed_origins])
 
 app.add_middleware(

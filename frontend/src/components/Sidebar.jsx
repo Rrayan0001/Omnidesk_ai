@@ -160,31 +160,34 @@ export default function Sidebar({
           {/* Spacer */}
           <div className="flex-1" />
 
-          {/* Theme Toggle */}
-          <button
-            onClick={toggleTheme}
-            className={cn(
-              "h-12 flex items-center rounded-lg hover:bg-secondary/50 text-muted-foreground hover:text-foreground transition-all",
-              (isExpanded || isOpen) ? "w-full justify-start gap-3 px-3" : "w-12 mx-auto justify-center"
-            )}
-            aria-label="Toggle theme"
-          >
-            {theme === 'dark' ? <Sun className="w-6 h-6 shrink-0" /> : <Moon className="w-6 h-6 shrink-0" />}
-            {(isExpanded || isOpen) && <span className="text-[15px]">{theme === 'dark' ? 'Light' : 'Dark'} Mode</span>}
-          </button>
+          {/* Bottom Actions - Always visible */}
+          <div className="shrink-0 space-y-1 pb-2">
+            {/* Theme Toggle */}
+            <button
+              onClick={toggleTheme}
+              className={cn(
+                "h-12 flex items-center rounded-lg hover:bg-secondary/50 text-muted-foreground hover:text-foreground transition-all",
+                (isExpanded || isOpen) ? "w-full justify-start gap-3 px-3" : "w-12 mx-auto justify-center"
+              )}
+              aria-label="Toggle theme"
+            >
+              {theme === 'dark' ? <Sun className="w-6 h-6 shrink-0" /> : <Moon className="w-6 h-6 shrink-0" />}
+              {(isExpanded || isOpen) && <span className="text-[15px]">{theme === 'dark' ? 'Light' : 'Dark'} Mode</span>}
+            </button>
 
-          {/* Logout Button */}
-          <button
-            onClick={signOut}
-            className={cn(
-              "h-12 flex items-center rounded-lg hover:bg-destructive/20 text-muted-foreground hover:text-destructive transition-all",
-              (isExpanded || isOpen) ? "w-full justify-start gap-3 px-3" : "w-12 mx-auto justify-center"
-            )}
-            aria-label="Logout"
-          >
-            <LogOut className="w-6 h-6 shrink-0" />
-            {(isExpanded || isOpen) && <span className="text-[15px]">Logout</span>}
-          </button>
+            {/* Logout Button */}
+            <button
+              onClick={signOut}
+              className={cn(
+                "h-12 flex items-center rounded-lg hover:bg-destructive/20 text-muted-foreground hover:text-destructive transition-all",
+                (isExpanded || isOpen) ? "w-full justify-start gap-3 px-3" : "w-12 mx-auto justify-center"
+              )}
+              aria-label="Logout"
+            >
+              <LogOut className="w-6 h-6 shrink-0" />
+              {(isExpanded || isOpen) && <span className="text-[15px]">Logout</span>}
+            </button>
+          </div>
         </div>
       </div>
 
