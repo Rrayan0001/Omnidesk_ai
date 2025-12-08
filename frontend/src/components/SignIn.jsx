@@ -25,8 +25,8 @@ export function SignIn({ onSwitch }) {
     }
 
     return (
-        <div className="flex flex-col items-center justify-center min-h-screen bg-background text-foreground animate-in fade-in zoom-in duration-500">
-            <div className="w-full max-w-md p-8 space-y-8 bg-secondary/30 backdrop-blur-lg rounded-2xl border border-secondary/50 shadow-2xl">
+        <div className="flex flex-col items-center justify-center min-h-screen bg-background text-foreground animate-in fade-in zoom-in duration-500 px-4">
+            <div className="w-full max-w-md p-6 sm:p-8 space-y-8 bg-secondary/30 backdrop-blur-lg rounded-2xl border border-secondary/50 shadow-2xl">
                 <div className="flex flex-col items-center space-y-2 text-center">
                     <div className="p-3 bg-primary/10 rounded-xl mb-4">
                         <LayoutDashboard className="w-12 h-12 text-primary" />

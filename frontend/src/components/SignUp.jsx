@@ -77,8 +77,8 @@ export function SignUp({ onSwitch }) {
     // Render Step 1: Details
     if (step === 1) {
         return (
-            <div className="flex flex-col items-center justify-center min-h-screen bg-background text-foreground animate-in fade-in zoom-in duration-500">
-                <div className="w-full max-w-lg p-8 space-y-6 bg-secondary/30 backdrop-blur-lg rounded-2xl border border-secondary/50 shadow-2xl">
+            <div className="flex flex-col items-center justify-center min-h-screen bg-background text-foreground animate-in fade-in zoom-in duration-500 px-4">
+                <div className="w-full max-w-lg p-6 sm:p-8 space-y-6 bg-secondary/30 backdrop-blur-lg rounded-2xl border border-secondary/50 shadow-2xl">
                     <div className="text-center space-y-2">
                         <h1 className="text-3xl font-bold tracking-tighter">Create Account</h1>
                         <p className="text-muted-foreground">Join Omnidesk AI today</p>
@@ -87,7 +87,7 @@ export function SignUp({ onSwitch }) {
                     <form onSubmit={handleDetailsSubmit} className="space-y-4">
                         {error && <div className="p-4 text-sm text-red-500 bg-red-500/10 rounded-lg border border-red-500/20">{error}</div>}
 
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <label className="text-sm font-medium">First Name</label>
                                 <input name="firstName" value={formData.firstName} onChange={handleChange} className="flex h-10 w-full rounded-md border border-input bg-background/50 px-3 py-2 text-sm focus:ring-2 focus:ring-primary" required />
@@ -129,8 +129,8 @@ export function SignUp({ onSwitch }) {
 
     // Render Step 2: OTP
     return (
-        <div className="flex flex-col items-center justify-center min-h-screen bg-background text-foreground animate-in slide-in-from-right duration-500">
-            <div className="w-full max-w-md p-8 space-y-8 bg-secondary/30 backdrop-blur-lg rounded-2xl border border-secondary/50 shadow-2xl">
+        <div className="flex flex-col items-center justify-center min-h-screen bg-background text-foreground animate-in slide-in-from-right duration-500 px-4">
+            <div className="w-full max-w-md p-6 sm:p-8 space-y-8 bg-secondary/30 backdrop-blur-lg rounded-2xl border border-secondary/50 shadow-2xl">
                 <div className="text-center space-y-2">
                     <div className="flexjustify-center mb-4">
                         <CheckCircle2 className="w-12 h-12 text-primary mx-auto" />
