@@ -28,8 +28,26 @@ export default function Sidebar({
   const { currentRoom, setCurrentRoom, rooms } = useRoom();
   const { signOut } = useAuth();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteAllDialogOpen, setDeleteAllDialogOpen] = useState(false);
   const [conversationToDelete, setConversationToDelete] = useState(null);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  // Handle delete all conversations
+  const handleDeleteAll = async () => {
+    setIsDeleting(true);
+    try {
+      await api.deleteAllConversations();
+      const newConv = await api.createConversation();
+      window.location.href = `/?conversation=${newConv.id}`;
+    } catch (error) {
+      console.error('Failed to delete all:', error);
+      alert('Failed to delete conversations. Please try again.');
+    } finally {
+      setIsDeleting(false);
+      setDeleteAllDialogOpen(false);
+    }
+  };
 
   // Rooms are now loaded from config.js via RoomContext
 
@@ -91,21 +109,9 @@ export default function Sidebar({
                 </h3>
                 {conversations.length > 0 && (
                   <button
-                    onClick={async () => {
-                      if (window.confirm('Clear all conversations and start fresh?')) {
-                        try {
-                          // Delete all conversations
-                          await api.deleteAllConversations();
-                          // Create a new empty conversation
-                          const newConv = await api.createConversation();
-                          // Refresh the page to the new conversation
-                          window.location.href = `/?conversation=${newConv.id}`;
-                        } catch (error) {
-                          console.error('Failed to clear:', error);
-                        }
-                      }
-                    }}
+                    onClick={() => setDeleteAllDialogOpen(true)}
                     className="p-1 rounded hover:bg-destructive/20 text-muted-foreground hover:text-destructive transition-all"
+                    title="Delete all conversations"
                   >
                     <Trash2 className="w-3 h-3" />
                   </button>
@@ -194,6 +200,14 @@ export default function Sidebar({
           setDeleteDialogOpen(false);
           setConversationToDelete(null);
         }}
+      />
+
+      {/* Delete All Confirmation Dialog */}
+      <DeleteConfirmDialog
+        open={deleteAllDialogOpen}
+        onOpenChange={setDeleteAllDialogOpen}
+        isDeleteAll={true}
+        onConfirm={handleDeleteAll}
       />
     </>
   );
