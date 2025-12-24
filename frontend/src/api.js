@@ -1,95 +1,52 @@
 /**
- * API client for the LLM Council backend.
+ * API layer for the LLM Council.
+ * Now uses client-side services instead of backend HTTP calls.
  */
+
 import { supabase } from './lib/supabase';
+import { v4 as uuidv4 } from 'uuid';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8001';
+// Import client-side services
+import * as storage from './services/storage';
+import { runFullCouncil, generateConversationTitle } from './services/council';
+import { streamModel, generateImage } from './services/llmClient';
+import { extractFileContent, analyzeFileContent, analyzeImage } from './services/fileProcessor';
+import { COUNCIL_MODELS, CHAIRMAN_MODEL, CHAT_MODELS, ROOMS, DEFAULT_ROOM } from './services/config';
 
-// Helper for authenticated requests
-const fetchAPI = async (endpoint, options = {}) => {
+/**
+ * Get the current user ID from Supabase auth.
+ */
+async function getUserId() {
   const { data: { session } } = await supabase.auth.getSession();
-  const userId = session?.user?.id;
-
-  const headers = {
-    ...options.headers,
-  };
-
-  if (userId) {
-    headers['X-User-ID'] = userId;
-  }
-
-  return fetch(`${API_BASE}${endpoint}`, {
-    ...options,
-    headers,
-  });
-};
+  return session?.user?.id;
+}
 
 export const api = {
   /**
    * List all conversations.
    */
   async listConversations() {
-    const response = await fetchAPI('/api/conversations');
-    if (!response.ok) {
-      throw new Error('Failed to list conversations');
-    }
-    return response.json();
+    const userId = await getUserId();
+    if (!userId) return [];
+    return storage.listConversations(userId);
   },
 
   /**
    * Create a new conversation.
    */
   async createConversation() {
-    const response = await fetchAPI('/api/conversations', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({}),
-    });
-    if (!response.ok) {
-      throw new Error('Failed to create conversation');
-    }
-    return response.json();
+    const userId = await getUserId();
+    if (!userId) throw new Error('Not authenticated');
+
+    const conversationId = uuidv4();
+    return storage.createConversation(conversationId, userId);
   },
 
   /**
    * Get a specific conversation.
    */
   async getConversation(conversationId) {
-    const response = await fetchAPI(`/api/conversations/${conversationId}`);
-    if (!response.ok) {
-      throw new Error('Failed to get conversation');
-    }
-    return response.json();
-  },
-
-  /**
-   * Send a message in a conversation.
-   * @param {string} conversationId
-   * @param {string} content
-   * @param {object} options - { mode, room, model }
-   */
-  async sendMessage(conversationId, content, options = {}) {
-    const response = await fetchAPI(
-      `/api/conversations/${conversationId}/message`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          content,
-          mode: options.mode || 'council',
-          room: options.room || 'decision',
-          model: options.model
-        }),
-      }
-    );
-    if (!response.ok) {
-      throw new Error('Failed to send message');
-    }
-    return response.json();
+    return storage.getConversation(conversationId);
   },
 
   /**
@@ -97,8 +54,7 @@ export const api = {
    * @param {string} conversationId - The conversation ID
    * @param {string} content - The message content
    * @param {object} options - { mode, room, model }
-   * @param {function} onEvent - Callback function for each event: (eventType, data) => void
-   * @returns {Promise<void>}
+   * @param {function} onEvent - Callback function for each event
    */
   async sendMessageStream(conversationId, content, options = {}, onEvent) {
     // Handle legacy signature: (id, content, onEvent)
@@ -107,47 +63,105 @@ export const api = {
       options = {};
     }
 
-    const response = await fetchAPI(
-      `/api/conversations/${conversationId}/message/stream`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          content,
-          mode: options.mode || 'chat',  // Default to 'chat' for faster responses
-          room: options.room || 'decision',
-          model: options.model
-        }),
-      }
-    );
+    const mode = options.mode || 'chat';
+    const room = options.room || DEFAULT_ROOM;
 
-    if (!response.ok) {
-      throw new Error('Failed to send message');
-    }
+    // Add user message to storage
+    await storage.addUserMessage(conversationId, content);
 
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder();
+    try {
+      if (mode === 'council') {
+        // Run full council process
+        const roomConfig = ROOMS[room] || ROOMS[DEFAULT_ROOM];
+        const models = roomConfig.models || COUNCIL_MODELS;
+        const chairman = roomConfig.chairman || CHAIRMAN_MODEL;
 
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
+        const result = await runFullCouncil(content, models, chairman, (eventType, data) => {
+          onEvent(eventType, data);
+        });
 
-      const chunk = decoder.decode(value);
-      const lines = chunk.split('\n');
+        // Save assistant message
+        await storage.addAssistantMessage(
+          conversationId,
+          result.stage1,
+          result.stage2,
+          result.stage3,
+          result.metadata
+        );
 
-      for (const line of lines) {
-        if (line.startsWith('data: ')) {
-          const data = line.slice(6);
-          try {
-            const event = JSON.parse(data);
-            onEvent(event.type, event);
-          } catch (e) {
-            console.error('Failed to parse SSE event:', e);
+        onEvent('complete', {});
+
+      } else if (mode === 'image') {
+        // Image generation mode
+        onEvent('image_start', {});
+
+        const imageMarkdown = await generateImage(content);
+
+        const imageData = {
+          model: 'Gemini Image Generation',
+          response: imageMarkdown
+        };
+
+        await storage.addChatMessage(conversationId, imageMarkdown, { mode: 'image' });
+
+        onEvent('image_complete', { data: imageData });
+        onEvent('complete', {});
+
+      } else {
+        // Chat mode - streaming
+        const modelId = options.model;
+        let selectedModel;
+
+        if (modelId) {
+          selectedModel = CHAT_MODELS.find(m => m.id === modelId || m.name === modelId);
+        }
+
+        if (!selectedModel) {
+          selectedModel = CHAT_MODELS[0]; // Default to first chat model
+        }
+
+        onEvent('chat_start', { model: selectedModel.name });
+
+        let fullResponse = '';
+        const messages = [{ role: 'user', content }];
+
+        await streamModel(selectedModel, messages, (chunk) => {
+          fullResponse += chunk;
+          onEvent('chat_chunk', { chunk });
+        });
+
+        // Save the complete message
+        await storage.addChatMessage(conversationId, fullResponse, {
+          mode: 'chat',
+          model: selectedModel.name
+        });
+
+        onEvent('chat_complete', {
+          data: {
+            model: selectedModel.name,
+            response: fullResponse
           }
+        });
+        onEvent('complete', {});
+      }
+
+      // Generate title if this is the first message
+      const conv = await storage.getConversation(conversationId);
+      if (conv && conv.messages.length <= 2 && conv.title === 'New Chat') {
+        const userMessages = conv.messages
+          .filter(m => m.role === 'user')
+          .map(m => m.content);
+
+        if (userMessages.length > 0) {
+          const title = await generateConversationTitle(userMessages);
+          await storage.updateConversationTitle(conversationId, title);
+          onEvent('title_complete', { title });
         }
       }
+
+    } catch (error) {
+      console.error('Error in sendMessageStream:', error);
+      onEvent('error', { message: error.message });
     }
   },
 
@@ -155,127 +169,65 @@ export const api = {
    * Delete a specific conversation.
    */
   async deleteConversation(conversationId) {
-    const response = await fetchAPI(
-      `/api/conversations/${conversationId}`,
-      {
-        method: 'DELETE',
-      }
-    );
-    if (!response.ok) {
-      throw new Error('Failed to delete conversation');
-    }
-    return response.json();
+    const success = await storage.deleteConversation(conversationId);
+    return { success };
   },
 
   /**
    * Delete all conversations.
    */
   async deleteAllConversations() {
-    const response = await fetchAPI('/api/conversations', {
-      method: 'DELETE',
-    });
-    if (!response.ok) {
-      throw new Error('Failed to delete all conversations');
-    }
-    return response.json();
+    const userId = await getUserId();
+    if (!userId) throw new Error('Not authenticated');
+    await storage.deleteAllConversations(userId);
+    return { success: true };
   },
 
   /**
    * List all available rooms.
    */
   async listRooms() {
-    const response = await fetchAPI('/api/rooms');
-    if (!response.ok) {
-      throw new Error('Failed to list rooms');
-    }
-    return response.json();
+    return ROOMS;
   },
 
   /**
-   * Detect room from prompt.
+   * Detect room from prompt (simplified - returns decision room).
    */
   async detectRoom(prompt) {
-    const response = await fetchAPI('/api/rooms/detect', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ prompt }),
-    });
-    if (!response.ok) {
-      throw new Error('Failed to detect room');
+    // Simple keyword detection
+    const lowerPrompt = prompt.toLowerCase();
+
+    if (lowerPrompt.includes('code') || lowerPrompt.includes('debug') || lowerPrompt.includes('function')) {
+      return { room: 'code' };
     }
-    return response.json();
+    if (lowerPrompt.includes('learn') || lowerPrompt.includes('study') || lowerPrompt.includes('explain')) {
+      return { room: 'study' };
+    }
+    if (lowerPrompt.includes('write') || lowerPrompt.includes('creative') || lowerPrompt.includes('story')) {
+      return { room: 'creative' };
+    }
+    if (lowerPrompt.includes('decide') || lowerPrompt.includes('choose') || lowerPrompt.includes('compare')) {
+      return { room: 'decision' };
+    }
+
+    return { room: DEFAULT_ROOM };
   },
 
   /**
-   * Upload a file for analysis.
-   * Supports PDF, DOCX, PPTX, and image files (PNG, JPEG, GIF, BMP, WEBP)
-   */
-  async uploadFile(file, prompt = 'Please analyze this file and provide a summary.') {
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('prompt', prompt);
-
-    // fetchAPI handles headers, but FormData shouldn't have Content-Type set manually (browser does it with boundary)
-    // fetchAPI spreads headers. If headers is passed empty, it's fine.
-    // However, fetchAPI adds X-User-ID to headers.
-
-    // We need to call fetchAPI carefully here.
-    // fetchAPI merges options.headers. 
-
-    const response = await fetchAPI('/api/file/upload', {
-      method: 'POST',
-      body: formData,
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.detail || 'Failed to upload file');
-    }
-    return response.json();
-  },
-
-  /**
-   * Extract text content from a file (without LLM analysis).
-   * Supports PDF, DOCX, PPTX, and image files
+   * Extract text content from a file.
    */
   async extractFileContent(file) {
-    const formData = new FormData();
-    formData.append('file', file);
-
-    const response = await fetchAPI('/api/file/extract', {
-      method: 'POST',
-      body: formData,
-    });
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.detail || 'Failed to extract file content');
-    }
-    return response.json();
+    return extractFileContent(file);
   },
 
   /**
    * Analyze pre-extracted file content with a user prompt.
-   * Uses GPT OSS 120B for analysis.
    */
   async analyzeFileContent(extractedText, prompt, filename, fileType) {
-    const response = await fetchAPI('/api/file/analyze', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        extracted_text: extractedText,
-        prompt: prompt,
-        filename: filename,
-        file_type: fileType,
-      }),
-    });
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.detail || 'Failed to analyze file');
+    if (fileType === 'image') {
+      // This shouldn't happen with the current flow, but handle it
+      return analyzeImage(extractedText, prompt, filename, 'image/png');
     }
-    return response.json();
+    return analyzeFileContent(extractedText, prompt, filename, fileType);
   },
 };
