@@ -123,11 +123,14 @@ export default function Sidebar({
                 </div>
               ) : (
                 conversations.map((conv) => (
-                  <button
+                  <div
                     key={conv.id}
                     onClick={() => onSelectConversation(conv.id)}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => e.key === 'Enter' && onSelectConversation(conv.id)}
                     className={cn(
-                      "w-full text-left px-3 py-2 rounded-lg text-sm transition-all group relative hover:bg-secondary/70",
+                      "w-full text-left px-3 py-2 rounded-lg text-sm transition-all group relative hover:bg-secondary/70 cursor-pointer",
                       currentConversationId === conv.id
                         ? "bg-secondary text-foreground shadow-sm"
                         : "text-muted-foreground hover:text-foreground"
@@ -149,7 +152,7 @@ export default function Sidebar({
                         </button>
                       )}
                     </div>
-                  </button>
+                  </div>
                 ))
               )}
             </div>
