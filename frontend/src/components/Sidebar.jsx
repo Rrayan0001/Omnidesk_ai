@@ -25,21 +25,13 @@ export default function Sidebar({
   toggleSidebar,
 }) {
   const { theme, toggleTheme } = useTheme();
-  const { currentRoom, setCurrentRoom, rooms, setRooms } = useRoom();
+  const { currentRoom, setCurrentRoom, rooms } = useRoom();
   const { signOut } = useAuth();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [conversationToDelete, setConversationToDelete] = useState(null);
   const [isExpanded, setIsExpanded] = useState(false);
 
-  // Load rooms on mount
-  useEffect(() => {
-    api.listRooms().then((data) => {
-      setRooms(data.rooms);
-      if (data.default) {
-        setCurrentRoom(data.default);
-      }
-    }).catch(err => console.error('Failed to load rooms:', err));
-  }, [setRooms, setCurrentRoom]);
+  // Rooms are now loaded from config.js via RoomContext
 
   return (
     <>

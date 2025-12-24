@@ -198,19 +198,19 @@ export const api = {
     const lowerPrompt = prompt.toLowerCase();
 
     if (lowerPrompt.includes('code') || lowerPrompt.includes('debug') || lowerPrompt.includes('function')) {
-      return { room: 'code' };
+      return { detected_room: 'code' };
     }
     if (lowerPrompt.includes('learn') || lowerPrompt.includes('study') || lowerPrompt.includes('explain')) {
-      return { room: 'study' };
+      return { detected_room: 'study' };
     }
     if (lowerPrompt.includes('write') || lowerPrompt.includes('creative') || lowerPrompt.includes('story')) {
-      return { room: 'creative' };
+      return { detected_room: 'creative' };
     }
     if (lowerPrompt.includes('decide') || lowerPrompt.includes('choose') || lowerPrompt.includes('compare')) {
-      return { room: 'decision' };
+      return { detected_room: 'decision' };
     }
 
-    return { room: DEFAULT_ROOM };
+    return { detected_room: DEFAULT_ROOM };
   },
 
   /**
