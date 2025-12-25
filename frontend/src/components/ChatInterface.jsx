@@ -217,7 +217,7 @@ export default function ChatInterface({
           >
             <PanelLeft className="w-5 h-5" />
           </button>
-          <div className="ml-2 font-semibold text-sm">OmniDesk AI</div>
+          <div className="ml-2 font-semibold text-sm">RayanAI</div>
         </div>
         <button
           onClick={toggleTheme}
@@ -238,7 +238,7 @@ export default function ChatInterface({
               <div className="w-20 h-20 mb-6 opacity-90">
                 <img
                   src={theme === 'dark' ? "/logo.png" : "/logo-light.png"}
-                  alt="OmniDesk AI"
+                  alt="RayanAI"
                   className="w-full h-full object-contain"
                 />
               </div>

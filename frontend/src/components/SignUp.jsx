@@ -81,7 +81,7 @@ export function SignUp({ onSwitch }) {
                 <div className="w-full max-w-lg p-6 sm:p-8 space-y-6 bg-secondary/30 backdrop-blur-lg rounded-2xl border border-secondary/50 shadow-2xl">
                     <div className="text-center space-y-2">
                         <h1 className="text-3xl font-bold tracking-tighter">Create Account</h1>
-                        <p className="text-muted-foreground">Join Omnidesk AI today</p>
+                        <p className="text-muted-foreground">Join RayanAI today</p>
                     </div>
 
                     <form onSubmit={handleDetailsSubmit} className="space-y-4">

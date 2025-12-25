@@ -32,7 +32,7 @@ export function SignIn({ onSwitch }) {
                         <LayoutDashboard className="w-12 h-12 text-primary" />
                     </div>
                     <h1 className="text-3xl font-bold tracking-tighter">Welcome Back</h1>
-                    <p className="text-muted-foreground">Sign in to continue to Omnidesk AI</p>
+                    <p className="text-muted-foreground">Sign in to continue to RayanAI</p>
                 </div>
 
                 <form onSubmit={handleSignIn} className="space-y-5">

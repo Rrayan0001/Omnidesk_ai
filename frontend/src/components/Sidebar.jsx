@@ -80,10 +80,10 @@ export default function Sidebar({
           )}>
             <img
               src={theme === 'dark' ? "/logo.png" : "/logo-light.png"}
-              alt="OmniDesk AI"
+              alt="RayanAI"
               className="w-9 h-9 object-contain shrink-0"
             />
-            {(isExpanded || isOpen) && <span className="text-base font-bold tracking-tight">OmniDesk</span>}
+            {(isExpanded || isOpen) && <span className="text-base font-bold tracking-tight">RayanAI</span>}
           </div>
 
           {/* New Chat Button */}
