@@ -341,7 +341,7 @@ export default function ChatInterface({
       )}
 
       {/* Mobile Header with Sidebar Toggle */}
-      <div className="md:hidden flex items-center justify-between p-4 border-b-2 border-foreground bg-background z-10 absolute top-0 left-0 right-0 h-14">
+      <div className="md:hidden flex items-center justify-between p-4 border-b-2 border-foreground bg-background z-50 fixed top-0 left-0 right-0 h-14">
         <div className="flex items-center">
           <button
             onClick={toggleSidebar}
