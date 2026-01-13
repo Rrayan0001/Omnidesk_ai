@@ -27,32 +27,32 @@ const CHAT_MODELS = [
 import { memo } from 'react';
 
 const MessageBubble = memo(({ msg, currentMode, theme }) => (
-  <div className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'} animate-in fade-in slide-in-from-bottom-4 duration-500`}>
+  <div className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
     {msg.role === 'user' ? (
       <>
-        <div className="max-w-[85%] bg-primary text-primary-foreground px-5 py-3 border-3 border-foreground brutal-shadow text-[15px] leading-relaxed font-sans transition-all hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] dark:hover:shadow-[6px_6px_0px_0px_rgba(255,255,255,1)]">
+        <div className="max-w-[90%] md:max-w-[85%] bg-primary text-primary-foreground px-3 md:px-5 py-2 md:py-3 border-2 md:border-3 border-foreground brutal-shadow text-sm md:text-[15px] leading-relaxed font-sans">
           {msg.content}
         </div>
       </>
     ) : (
-      <div className="w-full min-w-0 space-y-6 overflow-x-hidden">
+      <div className="w-full min-w-0 space-y-4 md:space-y-6 overflow-x-hidden">
         {/* Check message mode from metadata */}
         {
           msg.metadata?.mode === 'chat' || msg.metadata?.mode === 'image' || msg.metadata?.mode === 'file' ? (
             /* Simple Chat/Image/File Message Bubble */
-            <div className="flex items-start gap-4">
-              <div className="w-10 h-10 bg-secondary flex items-center justify-center shrink-0 border-2 border-foreground brutal-shadow-sm">
+            <div className="flex items-start gap-2 md:gap-4">
+              <div className="w-8 h-8 md:w-10 md:h-10 bg-secondary flex items-center justify-center shrink-0 border-2 border-foreground brutal-shadow-sm">
                 {msg.metadata?.mode === 'image' ? (
-                  <Sparkles className="w-5 h-5 text-primary" />
+                  <Sparkles className="w-4 h-4 md:w-5 md:h-5 text-primary" />
                 ) : msg.metadata?.mode === 'file' ? (
-                  <FileText className="w-5 h-5 text-primary" />
+                  <FileText className="w-4 h-4 md:w-5 md:h-5 text-primary" />
                 ) : (
-                  <Bot className="w-5 h-5 text-foreground" />
+                  <Bot className="w-4 h-4 md:w-5 md:h-5 text-foreground" />
                 )}
               </div>
               <div className="flex-1 min-w-0 space-y-2">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-bold font-sans text-foreground uppercase tracking-wider">
+                  <span className="text-xs md:text-sm font-bold font-sans text-foreground uppercase tracking-wider">
                     {msg.metadata?.model || (msg.metadata?.mode === 'image' ? 'Image Generator' : 'Assistant')}
                   </span>
                 </div>
@@ -366,15 +366,15 @@ export default function ChatInterface({
         {/* Messages or Empty State */}
         <div className="flex-1 overflow-y-auto scroll-smooth">
           {!hasMessages ? (
-            <div className="h-full flex flex-col items-center justify-center p-4 -mt-32">
-              <div className="w-24 h-24 mb-6 border-3 border-foreground brutal-shadow p-4 bg-secondary">
+            <div className="h-full flex flex-col items-center justify-center p-4 -mt-16 md:-mt-32">
+              <div className="w-16 h-16 md:w-24 md:h-24 mb-4 md:mb-6 border-3 border-foreground brutal-shadow p-3 md:p-4 bg-secondary">
                 <img
                   src={theme === 'dark' ? "/logo.png" : "/logo-light.png"}
                   alt="RayanAI"
                   className="w-full h-full object-contain"
                 />
               </div>
-              <h1 className="text-3xl font-black font-display tracking-tight text-foreground uppercase">How can I help you today?</h1>
+              <h1 className="text-xl md:text-3xl font-black font-display tracking-tight text-foreground uppercase text-center px-4">How can I help you today?</h1>
             </div>
           ) : (
             <div className="max-w-5xl mx-auto p-2 md:p-8 space-y-6 md:space-y-8 pb-32">
@@ -393,16 +393,16 @@ export default function ChatInterface({
 
         {/* Input Area - Dynamic Positioning */}
         <div className={cn(
-          "w-full transition-all duration-500 ease-in-out z-10",
+          "w-full z-10",
           hasMessages
-            ? "bg-background border-t-3 border-foreground fixed bottom-0 left-0 right-0 md:relative md:p-6 md:bg-transparent md:border-t-0 pb-safe"
-            : "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl px-4 mt-8 md:mt-20"
+            ? "bg-background border-t-3 border-foreground fixed bottom-0 left-0 right-0 md:relative md:p-6 md:bg-transparent md:border-t-0"
+            : "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl px-3 md:px-4 mt-24 md:mt-20"
         )}>
           <div className={cn(
-            "relative mx-auto transition-all duration-500",
-            hasMessages ? "max-w-5xl w-full p-2 md:p-0 mb-safe" : "max-w-2xl"
+            "relative mx-auto",
+            hasMessages ? "max-w-5xl w-full p-1.5 md:p-0" : "max-w-2xl"
           )}>
-            <div className="relative flex items-center gap-2 bg-background border-3 border-foreground brutal-shadow px-4 py-4 transition-all duration-300">
+            <div className="relative flex items-center gap-1.5 md:gap-2 bg-background border-3 border-foreground brutal-shadow px-2 md:px-4 py-2 md:py-4">
               {/* AI Tools Button */}
               <button
                 ref={toolsButtonRef}

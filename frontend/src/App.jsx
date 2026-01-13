@@ -221,13 +221,30 @@ function Dashboard() {
           break;
 
         case 'chat_complete':
+          console.log('[DEBUG] chat_complete event received:', event);
+          console.log('[DEBUG] event.data:', JSON.stringify(event.data, null, 2));
           setCurrentConversation((prev) => {
-            if (prev?.id !== conversationId) return prev;
+            if (prev?.id !== conversationId) {
+              console.warn('[DEBUG] Conversation ID mismatch');
+              return prev;
+            }
             const messages = [...prev.messages];
-            const lastMsg = messages[messages.length - 1];
+            const lastMsgIndex = messages.length - 1;
+            const lastMsg = messages[lastMsgIndex];
+            console.log('[DEBUG] Last message before update:', JSON.stringify(lastMsg, null, 2));
             if (lastMsg && lastMsg.role === 'assistant') {
-              lastMsg.stage3 = event.data;
-              lastMsg.metadata = { mode: 'chat', model: event.data.model };
+              console.log('[DEBUG] Updating assistant message with response');
+              // Create a NEW message object (immutable update) to trigger React re-render
+              messages[lastMsgIndex] = {
+                ...lastMsg,
+                stage3: event.data,
+                content: event.data.response,
+                metadata: { mode: 'chat', model: event.data.model },
+                loading: null
+              };
+              console.log('[DEBUG] Last message after update:', JSON.stringify(messages[lastMsgIndex], null, 2));
+            } else {
+              console.error('[DEBUG] Last message is not assistant:', lastMsg);
             }
             return { ...prev, messages };
           });

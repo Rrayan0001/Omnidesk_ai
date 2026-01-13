@@ -28,7 +28,19 @@ export function AuthProvider({ children }) {
         signUp: (data) => supabase.auth.signUp(data),
         signIn: (data) => supabase.auth.signInWithPassword(data),
         verifyOtp: (data) => supabase.auth.verifyOtp(data),
-        signOut: () => supabase.auth.signOut(),
+        signOut: async () => {
+            try {
+                // Remove local session first to update UI immediately
+                setUser(null);
+
+                // Then attempt server signout, ignoring errors
+                const { error } = await supabase.auth.signOut();
+                if (error) console.error("Signout error:", error);
+            } catch (err) {
+                // Ignore errors if already logged out
+                console.log("Already signed out or network error");
+            }
+        },
         user,
         session: user ? { user } : null // Compatible structure if needed
     }

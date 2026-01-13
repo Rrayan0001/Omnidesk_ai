@@ -56,7 +56,7 @@ export default function Sidebar({
       {/* Mobile Overlay */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 md:bg-transparent md:backdrop-blur-none"
+          className="fixed inset-0 bg-black/40 z-40 md:hidden"
           onClick={toggleSidebar}
         />
       )}
@@ -65,11 +65,11 @@ export default function Sidebar({
       <div
         className={cn(
           "fixed z-50 h-screen bg-background flex flex-col shrink-0 transition-transform duration-300 ease-in-out border-r-3 border-foreground",
-          // Mobile: Fixed width 85vw, slide in/out
-          "w-[85vw] md:w-auto",
+          // Mobile: Fixed width, slide in/out
+          "w-[72vw] max-w-[280px] md:w-auto md:max-w-none",
           isOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full shadow-none",
-          // Desktop: Relative, width changes based on expansion, always visible (reset translate)
-          "md:relative md:translate-x-0 md:transition-all md:shadow-none",
+          // Desktop: Relative, width changes based on expansion, always visible
+          "md:relative md:translate-x-0 md:shadow-none",
           isExpanded ? "md:w-64" : "md:w-16"
         )}
         onMouseEnter={() => setIsExpanded(true)}
