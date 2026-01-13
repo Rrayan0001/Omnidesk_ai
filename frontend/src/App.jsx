@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Sidebar from './components/Sidebar';
 import ChatInterface from './components/ChatInterface';
 import { api } from './api';
@@ -96,168 +96,211 @@ function Dashboard() {
     }
   };
 
-  // Helper function to handle stream events
+  // Buffer for streaming updates to prevent excessive re-renders
+  const streamBufferRef = useRef({
+    conversationId: null,
+    pendingChunks: '',
+    lastUpdateTime: 0,
+    animationFrameId: null,
+    isProcessing: false
+  });
+
+  // Helper function to handle stream events with buffering
   const handleStreamEvent = (conversationId, eventType, event) => {
-    switch (eventType) {
-      case 'stage1_start':
-        setCurrentConversation((prev) => {
-          if (prev?.id !== conversationId) return prev;
-          const messages = [...prev.messages];
-          const lastMsg = messages[messages.length - 1];
-          if (lastMsg && lastMsg.role === 'assistant' && lastMsg.loading) {
-            lastMsg.loading.stage1 = true;
-          }
-          return { ...prev, messages };
-        });
-        break;
+    // Immediate updates for non-chunk events
+    if (eventType !== 'chat_chunk') {
+      // Flush any pending chunks first if we're switching events
+      if (streamBufferRef.current.pendingChunks) {
+        const chunksToFlush = streamBufferRef.current.pendingChunks;
+        streamBufferRef.current.pendingChunks = '';
 
-      case 'stage1_complete':
         setCurrentConversation((prev) => {
           if (prev?.id !== conversationId) return prev;
           const messages = [...prev.messages];
           const lastMsg = messages[messages.length - 1];
           if (lastMsg && lastMsg.role === 'assistant') {
-            lastMsg.stage1 = event.data;
-            if (lastMsg.loading) lastMsg.loading.stage1 = false;
-          }
-          return { ...prev, messages };
-        });
-        break;
-
-      case 'stage2_start':
-        setCurrentConversation((prev) => {
-          if (prev?.id !== conversationId) return prev;
-          const messages = [...prev.messages];
-          const lastMsg = messages[messages.length - 1];
-          if (lastMsg && lastMsg.role === 'assistant' && lastMsg.loading) {
-            lastMsg.loading.stage2 = true;
-          }
-          return { ...prev, messages };
-        });
-        break;
-
-      case 'stage2_complete':
-        setCurrentConversation((prev) => {
-          if (prev?.id !== conversationId) return prev;
-          const messages = [...prev.messages];
-          const lastMsg = messages[messages.length - 1];
-          if (lastMsg && lastMsg.role === 'assistant') {
-            lastMsg.stage2 = event.data;
-            lastMsg.metadata = event.metadata;
-            if (lastMsg.loading) lastMsg.loading.stage2 = false;
-          }
-          return { ...prev, messages };
-        });
-        break;
-
-      case 'stage3_start':
-        setCurrentConversation((prev) => {
-          if (prev?.id !== conversationId) return prev;
-          const messages = [...prev.messages];
-          const lastMsg = messages[messages.length - 1];
-          if (lastMsg && lastMsg.role === 'assistant' && lastMsg.loading) {
-            lastMsg.loading.stage3 = true;
-          }
-          return { ...prev, messages };
-        });
-        break;
-
-      case 'stage3_complete':
-        setCurrentConversation((prev) => {
-          if (prev?.id !== conversationId) return prev;
-          const messages = [...prev.messages];
-          const lastMsg = messages[messages.length - 1];
-          if (lastMsg && lastMsg.role === 'assistant') {
-            lastMsg.stage3 = event.data;
-            if (lastMsg.loading) lastMsg.loading.stage3 = false;
-          }
-          return { ...prev, messages };
-        });
-        break;
-
-      case 'chat_start':
-        // Chat mode started
-        console.log('Chat started with model:', event.model);
-        setCurrentConversation((prev) => {
-          if (prev?.id !== conversationId) return prev;
-          const messages = [...prev.messages];
-          const lastMsg = messages[messages.length - 1];
-          if (lastMsg && lastMsg.role === 'assistant') {
-            lastMsg.metadata = { ...lastMsg.metadata, mode: 'chat', model: event.model };
-          }
-          return { ...prev, messages };
-        });
-        break;
-
-      case 'chat_chunk':
-        // Append chunk to current message
-        setCurrentConversation((prev) => {
-          if (prev?.id !== conversationId) return prev;
-          const messages = [...prev.messages];
-          const lastMsg = messages[messages.length - 1];
-          if (lastMsg && lastMsg.role === 'assistant') {
-            // Initialize content if null, or append chunk
             const currentContent = lastMsg.stage3?.response || lastMsg.content || '';
-            const newContent = currentContent + (event.chunk || '');
-
-            // Update both stage3 (for compatibility) and content
+            const newContent = currentContent + chunksToFlush;
             lastMsg.stage3 = { ...lastMsg.stage3, response: newContent };
             lastMsg.content = newContent;
-            // Ensure mode is chat so it renders as a bubble
             lastMsg.metadata = { ...lastMsg.metadata, mode: 'chat' };
           }
           return { ...prev, messages };
         });
-        break;
+      }
 
-      case 'chat_complete':
-        // Chat mode complete
-        setCurrentConversation((prev) => {
-          if (prev?.id !== conversationId) return prev;
-          const messages = [...prev.messages];
-          const lastMsg = messages[messages.length - 1];
-          if (lastMsg && lastMsg.role === 'assistant') {
-            lastMsg.stage3 = event.data; // Store in stage3 for compatibility
-            lastMsg.metadata = { mode: 'chat', model: event.data.model };
-          }
-          return { ...prev, messages };
-        });
-        break;
+      // Handle the non-chunk event normally
+      switch (eventType) {
+        case 'stage1_start':
+          setCurrentConversation((prev) => {
+            if (prev?.id !== conversationId) return prev;
+            const messages = [...prev.messages];
+            const lastMsg = messages[messages.length - 1];
+            if (lastMsg && lastMsg.role === 'assistant' && lastMsg.loading) {
+              lastMsg.loading.stage1 = true;
+            }
+            return { ...prev, messages };
+          });
+          break;
 
-      case 'image_start':
-        // Image generation started
-        console.log('Image generation started');
-        break;
+        case 'stage1_complete':
+          setCurrentConversation((prev) => {
+            if (prev?.id !== conversationId) return prev;
+            const messages = [...prev.messages];
+            const lastMsg = messages[messages.length - 1];
+            if (lastMsg && lastMsg.role === 'assistant') {
+              lastMsg.stage1 = event.data;
+              if (lastMsg.loading) lastMsg.loading.stage1 = false;
+            }
+            return { ...prev, messages };
+          });
+          break;
 
-      case 'image_complete':
-        // Image generation complete
-        setCurrentConversation((prev) => {
-          if (prev?.id !== conversationId) return prev;
-          const messages = [...prev.messages];
-          const lastMsg = messages[messages.length - 1];
-          if (lastMsg && lastMsg.role === 'assistant') {
-            lastMsg.stage3 = event.data; // Store in stage3 for compatibility
-            lastMsg.metadata = { mode: 'image' };
-          }
-          return { ...prev, messages };
-        });
-        break;
+        case 'stage2_start':
+          setCurrentConversation((prev) => {
+            if (prev?.id !== conversationId) return prev;
+            const messages = [...prev.messages];
+            const lastMsg = messages[messages.length - 1];
+            if (lastMsg && lastMsg.role === 'assistant' && lastMsg.loading) {
+              lastMsg.loading.stage2 = true;
+            }
+            return { ...prev, messages };
+          });
+          break;
 
-      case 'title_complete':
-        loadConversations();
-        break;
+        case 'stage2_complete':
+          setCurrentConversation((prev) => {
+            if (prev?.id !== conversationId) return prev;
+            const messages = [...prev.messages];
+            const lastMsg = messages[messages.length - 1];
+            if (lastMsg && lastMsg.role === 'assistant') {
+              lastMsg.stage2 = event.data;
+              lastMsg.metadata = event.metadata;
+              if (lastMsg.loading) lastMsg.loading.stage2 = false;
+            }
+            return { ...prev, messages };
+          });
+          break;
 
-      case 'complete':
-        loadConversations();
-        setLoadingStates(prev => ({ ...prev, [conversationId]: false }));
-        break;
+        case 'stage3_start':
+          setCurrentConversation((prev) => {
+            if (prev?.id !== conversationId) return prev;
+            const messages = [...prev.messages];
+            const lastMsg = messages[messages.length - 1];
+            if (lastMsg && lastMsg.role === 'assistant' && lastMsg.loading) {
+              lastMsg.loading.stage3 = true;
+            }
+            return { ...prev, messages };
+          });
+          break;
 
-      case 'error':
-        console.error('Stream error:', event.message);
-        break;
+        case 'stage3_complete':
+          setCurrentConversation((prev) => {
+            if (prev?.id !== conversationId) return prev;
+            const messages = [...prev.messages];
+            const lastMsg = messages[messages.length - 1];
+            if (lastMsg && lastMsg.role === 'assistant') {
+              lastMsg.stage3 = event.data;
+              if (lastMsg.loading) lastMsg.loading.stage3 = false;
+            }
+            return { ...prev, messages };
+          });
+          break;
 
-      default:
-        console.log('Unknown event type:', eventType);
+        case 'chat_start':
+          console.log('Chat started with model:', event.model);
+          setCurrentConversation((prev) => {
+            if (prev?.id !== conversationId) return prev;
+            const messages = [...prev.messages];
+            const lastMsg = messages[messages.length - 1];
+            if (lastMsg && lastMsg.role === 'assistant') {
+              lastMsg.metadata = { ...lastMsg.metadata, mode: 'chat', model: event.model };
+            }
+            return { ...prev, messages };
+          });
+          break;
+
+        case 'chat_complete':
+          setCurrentConversation((prev) => {
+            if (prev?.id !== conversationId) return prev;
+            const messages = [...prev.messages];
+            const lastMsg = messages[messages.length - 1];
+            if (lastMsg && lastMsg.role === 'assistant') {
+              lastMsg.stage3 = event.data;
+              lastMsg.metadata = { mode: 'chat', model: event.data.model };
+            }
+            return { ...prev, messages };
+          });
+          break;
+
+        case 'image_start':
+          console.log('Image generation started');
+          break;
+
+        case 'image_complete':
+          setCurrentConversation((prev) => {
+            if (prev?.id !== conversationId) return prev;
+            const messages = [...prev.messages];
+            const lastMsg = messages[messages.length - 1];
+            if (lastMsg && lastMsg.role === 'assistant') {
+              lastMsg.stage3 = event.data;
+              lastMsg.metadata = { mode: 'image' };
+            }
+            return { ...prev, messages };
+          });
+          break;
+
+        case 'title_complete':
+          loadConversations();
+          break;
+
+        case 'complete':
+          loadConversations();
+          setLoadingStates(prev => ({ ...prev, [conversationId]: false }));
+          break;
+
+        case 'error':
+          console.error('Stream error:', event.message);
+          break;
+
+        default:
+          console.log('Unknown event type:', eventType);
+      }
+      return;
+    }
+
+    // Handle chat_chunk with buffering
+    streamBufferRef.current.conversationId = conversationId;
+    streamBufferRef.current.pendingChunks += (event.chunk || '');
+
+    // Only update state if enough time has passed or not currently processing
+    const now = Date.now();
+    if (!streamBufferRef.current.isProcessing && (now - streamBufferRef.current.lastUpdateTime > 50)) { // 50ms throttle
+      streamBufferRef.current.isProcessing = true;
+      streamBufferRef.current.animationFrameId = requestAnimationFrame(() => {
+        const chunksToFlush = streamBufferRef.current.pendingChunks;
+
+        if (chunksToFlush) {
+          streamBufferRef.current.pendingChunks = '';
+          streamBufferRef.current.lastUpdateTime = Date.now();
+
+          setCurrentConversation((prev) => {
+            if (prev?.id !== conversationId) return prev;
+            const messages = [...prev.messages];
+            const lastMsg = messages[messages.length - 1];
+            if (lastMsg && lastMsg.role === 'assistant') {
+              const currentContent = lastMsg.stage3?.response || lastMsg.content || '';
+              const newContent = currentContent + chunksToFlush;
+
+              lastMsg.stage3 = { ...lastMsg.stage3, response: newContent };
+              lastMsg.content = newContent;
+              lastMsg.metadata = { ...lastMsg.metadata, mode: 'chat' };
+            }
+            return { ...prev, messages };
+          });
+        }
+        streamBufferRef.current.isProcessing = false;
+      });
     }
   };
 

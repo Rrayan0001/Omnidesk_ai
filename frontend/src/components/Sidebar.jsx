@@ -64,9 +64,12 @@ export default function Sidebar({
       {/* Sidebar - Expandable */}
       <div
         className={cn(
-          "fixed md:relative z-50 h-screen bg-secondary/30 flex flex-col shrink-0 transition-all duration-300 ease-in-out border-r border-border/50",
-          isOpen ? "translate-x-0 w-[85vw]" : "-translate-x-full w-16",
-          "md:translate-x-0",
+          "fixed z-50 h-screen bg-background flex flex-col shrink-0 transition-transform duration-300 ease-in-out border-r-3 border-foreground",
+          // Mobile: Fixed width 85vw, slide in/out
+          "w-[85vw] md:w-auto",
+          isOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full shadow-none",
+          // Desktop: Relative, width changes based on expansion, always visible (reset translate)
+          "md:relative md:translate-x-0 md:transition-all md:shadow-none",
           isExpanded ? "md:w-64" : "md:w-16"
         )}
         onMouseEnter={() => setIsExpanded(true)}
@@ -75,15 +78,18 @@ export default function Sidebar({
         <div className="p-2 flex-1 flex flex-col min-h-0">
           {/* Logo */}
           <div className={cn(
-            "flex items-center gap-3 hover:bg-secondary/50 rounded-lg transition-colors mb-2",
+            "flex items-center gap-3 hover:bg-primary hover:text-primary-foreground transition-colors mb-2 group",
             (isExpanded || isOpen) ? "w-full px-3 h-12" : "w-12 h-12 mx-auto justify-center"
           )}>
             <img
               src={theme === 'dark' ? "/logo.png" : "/logo-light.png"}
               alt="RayanAI"
-              className="w-9 h-9 object-contain shrink-0"
+              className={cn(
+                "w-9 h-9 object-contain shrink-0 transition-all",
+                theme !== 'dark' && "group-hover:brightness-0 group-hover:invert"
+              )}
             />
-            {(isExpanded || isOpen) && <span className="text-base font-bold tracking-tight">RayanAI</span>}
+            {(isExpanded || isOpen) && <span className="text-base font-bold tracking-tight uppercase text-glitch brutal-underline">RayanAI</span>}
           </div>
 
           {/* New Chat Button */}
@@ -91,7 +97,7 @@ export default function Sidebar({
             onClick={onNewConversation}
             variant="ghost"
             className={cn(
-              "h-12 flex items-center rounded-lg hover:bg-secondary/50 text-foreground/80 mb-2",
+              "h-12 flex items-center border-2 border-foreground bg-primary text-primary-foreground hover:translate-x-[-2px] hover:translate-y-[-2px] mb-2 brutal-button",
               (isExpanded || isOpen) ? "w-full justify-start gap-3 px-3" : "w-12 mx-auto p-0 justify-center"
             )}
             title="New Chat"
@@ -130,9 +136,9 @@ export default function Sidebar({
                     tabIndex={0}
                     onKeyDown={(e) => e.key === 'Enter' && onSelectConversation(conv.id)}
                     className={cn(
-                      "w-full text-left px-3 py-2 rounded-lg text-sm transition-all group relative hover:bg-secondary/70 cursor-pointer",
+                      "w-full text-left px-3 py-2 text-sm transition-all group relative hover:bg-accent cursor-pointer border-b-2 border-foreground/20",
                       currentConversationId === conv.id
-                        ? "bg-secondary text-foreground shadow-sm"
+                        ? "bg-accent text-foreground"
                         : "text-muted-foreground hover:text-foreground"
                     )}
                   >
@@ -167,7 +173,7 @@ export default function Sidebar({
             <button
               onClick={toggleTheme}
               className={cn(
-                "h-12 flex items-center rounded-lg hover:bg-secondary/50 text-muted-foreground hover:text-foreground transition-all",
+                "h-12 flex items-center border-2 border-foreground hover:bg-primary hover:text-primary-foreground text-muted-foreground transition-all",
                 (isExpanded || isOpen) ? "w-full justify-start gap-3 px-3" : "w-12 mx-auto justify-center"
               )}
               aria-label="Toggle theme"
@@ -190,7 +196,7 @@ export default function Sidebar({
             </button>
           </div>
         </div>
-      </div>
+      </div >
 
       <DeleteConfirmDialog
         open={deleteDialogOpen}

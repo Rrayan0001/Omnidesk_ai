@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
 
 @import "tailwindcss";
 
@@ -28,185 +28,282 @@
 
   --color-popover: hsl(var(--popover));
   --color-popover-foreground: hsl(var(--popover-foreground));
-
-  --color-card: hsl(var(--card));
-  --color-card-foreground: hsl(var(--card-foreground));
-
-  --radius-lg: var(--radius);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-sm: calc(var(--radius) - 4px);
-
-  --font-sans: 'Plus Jakarta Sans', sans-serif;
+  --font-sans: 'Space Grotesk', 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --font-display: 'Clash Display', 'Space Grotesk', sans-serif;
 }
 
 :root {
-  /* ChatGPT Light Theme */
-  --background: 0 0% 100%;
-  /* #ffffff */
-  --foreground: 0 0% 9%;
-  /* #171717 */
+  /* DUAL TONE THEME: Slate (Primary) + Cyan (Secondary/Accent) */
+  /* Base - Light Mode */
+  --background: 210 40% 98%;
+  /* Soft cool grey/white */
+  --foreground: 222 47% 11%;
+  /* Deep Slate */
 
   --card: 0 0% 100%;
-  --card-foreground: 0 0% 9%;
+  --card-foreground: 222 47% 11%;
 
   --popover: 0 0% 100%;
-  --popover-foreground: 0 0% 9%;
+  --popover-foreground: 222 47% 11%;
 
-  --primary: 0 0% 9%;
-  /* #171717 */
-  --primary-foreground: 0 0% 98%;
+  /* Primary: Deep Slate Navy */
+  --primary: 222 47% 11%;
+  --primary-foreground: 210 40% 98%;
 
-  --secondary: 0 0% 96.1%;
-  /* #f5f5f5 */
-  --secondary-foreground: 0 0% 9%;
+  /* Secondary: Bright Cyan */
+  --secondary: 189 94% 43%;
+  --secondary-foreground: 222 47% 11%;
 
-  --muted: 0 0% 96.1%;
-  --muted-foreground: 0 0% 45.1%;
+  --muted: 210 40% 96.1%;
+  --muted-foreground: 215.4 16.3% 46.9%;
 
-  --accent: 0 0% 96.1%;
-  --accent-foreground: 0 0% 9%;
+  --accent: 189 94% 43%;
+  /* Cyan for hover/accents */
+  --accent-foreground: 222 47% 11%;
 
   --destructive: 0 84.2% 60.2%;
-  --destructive-foreground: 0 0% 98%;
+  --destructive-foreground: 210 40% 98%;
 
-  --border: 0 0% 89.8%;
-  /* #e5e5e5 */
-  --input: 0 0% 89.8%;
-  --ring: 0 0% 9%;
+  /* Borders: Sharp & Dark for Neo-Brutalist Definition */
+  --border: 222 47% 11%;
+  /* Matching Primary for strong borders */
+  --input: 222 47% 11%;
+  --ring: 222 47% 11%;
 
-  --radius: 0.5rem;
+  /* Neo-Brutalism Specs */
+  --radius: 0px;
+  /* SHARP CORNERS */
+  --items-shadow: 4px 4px 0px 0px hsl(222 47% 11%);
+  /* Hard Shadow */
+
+  /* Chart Colors (Dual Tone adaptation) */
+  --chart-1: 222 47% 11%;
+  /* Slate */
+  --chart-2: 189 94% 43%;
+  /* Cyan */
+  --chart-3: 199 89% 48%;
+  /* Lighter Blue */
+  --chart-4: 222 47% 20%;
+  /* Light Slate */
+  --chart-5: 189 94% 30%;
+  /* Dark Cyan */
 }
 
 .dark {
-  /* ChatGPT Premium Dark Theme */
-  --background: 0 0% 10%;
-  /* #1a1a1a - Deeper dark */
-  --foreground: 0 0% 98%;
-  /* #fafafa - Brighter white */
+  /* Base - Dark Mode */
+  --background: 222 47% 5%;
+  /* Very dark slate */
+  --foreground: 210 40% 98%;
 
-  --card: 0 0% 10%;
-  --card-foreground: 0 0% 98%;
+  --card: 222 47% 8%;
+  --card-foreground: 210 40% 98%;
 
-  --popover: 0 0% 10%;
-  --popover-foreground: 0 0% 98%;
+  --popover: 222 47% 8%;
+  --popover-foreground: 210 40% 98%;
 
-  --primary: 0 0% 98%;
-  --primary-foreground: 0 0% 9%;
+  /* Primary: White/Cyan for contrast in Dark Mode? 
+     Actually, let's keep the Dual Tone Identity. 
+     Primary text is usually white in dark mode. */
+  --primary: 189 94% 43%;
+  /* Cyan becomes primary in dark mode for visibility */
+  --primary-foreground: 222 47% 11%;
+  /* Slate text on Cyan */
 
-  --secondary: 0 0% 16%;
-  /* #292929 - Subtle separation */
-  --secondary-foreground: 0 0% 98%;
+  /* Secondary: Slate Lighter */
+  --secondary: 217.2 32.6% 17.5%;
+  --secondary-foreground: 210 40% 98%;
 
-  --muted: 0 0% 16%;
-  --muted-foreground: 0 0% 70%;
-  /* #b3b3b3 - Lighter gray for better readability */
+  --muted: 217.2 32.6% 17.5%;
+  --muted-foreground: 215 20.2% 65.1%;
 
-  --accent: 0 0% 16%;
-  --accent-foreground: 0 0% 98%;
+  --accent: 217.2 32.6% 17.5%;
+  --accent-foreground: 210 40% 98%;
 
   --destructive: 0 62.8% 30.6%;
-  --destructive-foreground: 0 0% 98%;
+  --destructive-foreground: 210 40% 98%;
 
-  --border: 0 0% 20%;
-  --input: 0 0% 20%;
-  --ring: 0 0% 83.1%;
+  --border: 217.2 32.6% 17.5%;
+  --input: 217.2 32.6% 17.5%;
+  --ring: 212.7 26.8% 83.9%;
+
+  --items-shadow: 4px 4px 0px 0px hsl(0 0% 0%);
+  /* Black shadow for dark mode */
 }
 
 @layer base {
   * {
-    @apply border-border;
+    border-color: hsl(var(--border));
   }
 
   body {
-    @apply bg-background text-foreground antialiased;
-    font-family: 'Plus Jakarta Sans', sans-serif;
-  }
-
-  html {
-    -webkit-text-size-adjust: 100%;
-  }
-
-  /* Prevent zooming on mobile inputs */
-  input,
-  textarea,
-  select {
-    font-size: 16px !important;
-  }
-
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6 {
-    font-family: 'Plus Jakarta Sans', sans-serif;
-    /* ChatGPT uses sans-serif for headings too */
-    @apply tracking-tight font-semibold;
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
 
-/* Markdown Styling Override for Tailwind */
+/* Neo-Brutalist Utility Classes */
+@layer utilities {
+  .brutal-border {
+    border-width: 2px;
+    border-color: hsl(var(--border));
+  }
+
+  .border-3 {
+    border-width: 3px;
+  }
+
+  .brutal-shadow {
+    box-shadow: 4px 4px 0px 0px hsl(var(--border));
+  }
+
+  .brutal-shadow-hover {
+    transition-property: all;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 200ms;
+  }
+
+  .brutal-shadow-hover:hover {
+    box-shadow: 2px 2px 0px 0px hsl(var(--border));
+    transform: translate(2px, 2px);
+  }
+
+  .brutal-shadow-sm {
+    box-shadow: 2px 2px 0px 0px hsl(var(--border));
+  }
+
+  .brutal-btn {
+    border-width: 2px;
+    border-color: hsl(var(--border));
+    background-color: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+    font-weight: 700;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+    transition-property: all;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 150ms;
+    box-shadow: 4px 4px 0px 0px hsl(var(--border));
+  }
+
+  .brutal-btn:hover {
+    background-color: hsl(var(--primary) / 0.9);
+  }
+
+  .brutal-btn:active {
+    transform: translate(2px, 2px);
+    box-shadow: none;
+  }
+
+  .brutal-card {
+    background-color: hsl(var(--card));
+    border-width: 2px;
+    border-color: hsl(var(--border));
+    padding: 1rem;
+    box-shadow: 4px 4px 0px 0px hsl(var(--border));
+  }
+
+  .brutal-input {
+    border-width: 2px;
+    border-color: hsl(var(--border));
+    background-color: hsl(var(--background));
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+    outline: 2px solid transparent;
+    outline-offset: 2px;
+    transition-property: all;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 150ms;
+  }
+
+  .brutal-input:focus {
+    --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);
+    --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color);
+    box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000);
+    --tw-ring-color: hsl(var(--primary) / 0.2);
+  }
+
+  /* Text Effects */
+  .text-spread {
+    letter-spacing: 0.25em;
+  }
+
+  .text-glitch {
+    position: relative;
+  }
+
+  .text-glitch:hover {
+    text-shadow: 2px 2px 0px hsl(var(--secondary)), -2px -2px 0px hsl(var(--primary));
+  }
+}
+
+
+/* Markdown Styling - Clean */
 .markdown-content {
-  @apply text-sm leading-relaxed;
-  white-space: pre-wrap;
-  word-break: break-word;
+  font-size: 1rem;
+  line-height: 1.625;
+  color: hsl(var(--foreground) / 0.9);
 }
 
 .markdown-content p {
-  @apply mb-4;
+  margin-bottom: 1rem;
+  line-height: 1.75rem;
 }
 
 .markdown-content h1,
 .markdown-content h2,
-.markdown-content h3,
-.markdown-content h4 {
-  @apply font-semibold mt-6 mb-2;
+.markdown-content h3 {
+  font-weight: 700;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  color: hsl(var(--foreground));
+  letter-spacing: -0.025em;
 }
 
 .markdown-content ul,
 .markdown-content ol {
-  @apply pl-6 mb-4 list-disc;
+  padding-left: 1.5rem;
+  margin-bottom: 1rem;
+  list-style-type: disc;
+}
+
+.markdown-content ul::marker,
+.markdown-content ol::marker {
+  color: hsl(var(--primary) / 0.5);
 }
 
 .markdown-content pre {
-  @apply bg-muted p-4 rounded-lg overflow-x-auto mb-4 border border-border;
+  background-color: hsl(var(--muted) / 0.5);
+  padding: 1rem;
+  border-radius: 0.75rem;
+  overflow-x: auto;
+  margin-bottom: 1rem;
+  border-width: 1px;
+  border-color: hsl(var(--border) / 0.5);
 }
 
 .markdown-content code {
-  @apply bg-muted px-1.5 py-0.5 rounded text-sm font-mono;
+  background-color: hsl(var(--muted) / 0.5);
+  padding-left: 0.375rem;
+  padding-right: 0.375rem;
+  padding-top: 0.125rem;
+  padding-bottom: 0.125rem;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  color: hsl(var(--primary));
 }
 
 .markdown-content pre code {
-  @apply bg-transparent p-0 text-inherit;
-}
-
-/* Mobile Optimizations */
-@media (max-width: 768px) {
-
-  /* Larger touch targets */
-  button,
-  a,
-  input,
-  textarea,
-  select {
-    min-height: 44px;
-  }
-
-  /* Smoother scrolling */
-  .scroll-smooth {
-    -webkit-overflow-scrolling: touch;
-    scroll-behavior: smooth;
-  }
-
-  /* Prevent horizontal overflow */
-  body {
-    overflow-x: hidden;
-  }
-
-  /* Better spacing on mobile */
-  .p-4 {
-    padding: 1rem;
-  }
+  background-color: transparent;
+  padding: 0;
+  color: inherit;
+  font-size: 0.875rem;
 }
 
 /* Custom Scrollbar */
@@ -220,19 +317,20 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: hsl(var(--muted-foreground) / 0.3);
-  border-radius: 3px;
+  background: hsl(var(--muted-foreground) / 0.2);
+  border-radius: 9999px;
+  transition: background 0.2s;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: hsl(var(--muted-foreground) / 0.5);
+  background: hsl(var(--muted-foreground) / 0.4);
 }
 
-/* Animation Classes */
+/* Animations */
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(4px);
   }
 
   to {
@@ -241,55 +339,24 @@
   }
 }
 
-@keyframes slideInRight {
-  from {
-    opacity: 0;
-    transform: translateX(20px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-@keyframes pulse-glow {
-
-  0%,
-  100% {
-    box-shadow: 0 0 5px hsl(var(--primary) / 0.3);
-  }
-
-  50% {
-    box-shadow: 0 0 20px hsl(var(--primary) / 0.5);
-  }
-}
-
 .animate-fade-in {
   animation: fadeIn 0.3s ease-out forwards;
 }
 
-.animate-slide-in {
-  animation: slideInRight 0.3s ease-out forwards;
-}
-
-.animate-pulse-glow {
-  animation: pulse-glow 2s ease-in-out infinite;
-}
-
-/* Message Loading Animation */
-@keyframes typing {
-
-  0%,
-  100% {
-    opacity: 0.3;
+/* Mobile Animation Optimization */
+@media (max-width: 768px) {
+  .animate-fade-in {
+    animation: none;
+    /* Disable entrance animations on mobile */
   }
 
-  50% {
-    opacity: 1;
+  .brutal-shadow-hover {
+    transition: none;
+    /* Disable hover transitions on mobile */
   }
 }
 
+/* Loading Dot Animation */
 .typing-dot {
   animation: typing 1.4s ease-in-out infinite;
 }
@@ -302,15 +369,32 @@
   animation-delay: 0.4s;
 }
 
-/* Glass Effect */
-.glass {
-  background: hsl(var(--background) / 0.8);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+@keyframes typing {
+
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: scale(0.8);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
-/* Better Focus States */
-*:focus-visible {
-  outline: 2px solid hsl(var(--primary));
-  outline-offset: 2px;
+/* Glass Effect - Optimized */
+.glass {
+  background-color: hsl(var(--background) / 0.95);
+  /* More opaque on mobile */
+  border-bottom-width: 1px;
+  border-color: hsl(var(--border) / 0.4);
+}
+
+/* Enable blur only on larger screens with GPU power */
+@media (min-width: 768px) {
+  .glass {
+    background-color: hsl(var(--background) / 0.8);
+    backdrop-filter: blur(12px);
+  }
 }

@@ -66,7 +66,7 @@ export default function Stage2({ rankings, labelToModel, aggregateRankings, isLo
   return (
     <div className="w-full mb-8 animate-in fade-in slide-in-from-bottom-4 duration-500 delay-150">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-xs font-sans font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-2 opacity-80">
+        <h3 className="text-xs font-sans font-bold text-muted-foreground flex items-center gap-2 opacity-80">
           <span className="w-1.5 h-1.5 rounded-full bg-primary/60"></span>
           Analysis
         </h3>
@@ -75,26 +75,26 @@ export default function Stage2({ rankings, labelToModel, aggregateRankings, isLo
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Aggregate Rankings Card */}
         {aggregateRankings && aggregateRankings.length > 0 && (
-          <div className="lg:col-span-1 bg-card border border-border/40 rounded-xl p-0 overflow-hidden h-fit shadow-sm">
-            <div className="bg-secondary/20 px-4 py-3 border-b border-border/40">
-              <h4 className="text-xs font-bold text-foreground uppercase tracking-widest font-sans opacity-80">
+          <div className="lg:col-span-1 bg-card border-2 border-foreground brutal-shadow-sm p-4 h-fit">
+            <div className="bg-secondary px-4 py-3 border-b-2 border-foreground mb-4">
+              <h4 className="text-xs font-black text-foreground uppercase tracking-widest font-mono">
                 Leaderboard
               </h4>
             </div>
-            <div className="divide-y divide-border/40">
+            <div className="divide-y-2 divide-foreground/20">
               {aggregateRankings.map((item, idx) => (
                 <div
                   key={idx}
-                  className="flex items-center gap-3 p-3 hover:bg-secondary/20 transition-colors"
+                  className="flex items-center gap-3 p-3 hover:bg-secondary transition-colors"
                 >
                   <div className={`
-                    w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold border
-                    ${idx === 0 ? 'bg-primary/10 text-primary border-primary/20' :
-                      'bg-secondary/30 text-muted-foreground border-border/50'}
+                    w-6 h-6 flex items-center justify-center text-xs font-bold border-2
+                    ${idx === 0 ? 'bg-primary text-primary-foreground border-foreground' :
+                      'bg-secondary text-muted-foreground border-foreground'}
                   `}>
                     {idx + 1}
                   </div>
-                  <span className="flex-1 text-sm font-medium truncate font-sans">
+                  <span className="flex-1 text-sm font-bold truncate font-mono uppercase">
                     {labelToModel ? labelToModel[item.label] : item.label}
                   </span>
                   <span className="text-[10px] font-mono text-muted-foreground opacity-70">
@@ -107,17 +107,17 @@ export default function Stage2({ rankings, labelToModel, aggregateRankings, isLo
         )}
 
         {/* Individual Reviews */}
-        <div className="lg:col-span-2 bg-card border border-border/40 rounded-xl overflow-hidden shadow-sm">
-          <div className="flex overflow-x-auto border-b border-border/40 bg-secondary/20 scrollbar-hide p-1 gap-1">
+        <div className="lg:col-span-2 bg-card border-2 border-foreground brutal-shadow-sm p-4">
+          <div className="flex overflow-x-auto border-b-2 border-foreground bg-secondary/20 scrollbar-hide p-1 gap-1 mb-4">
             {rankerNames.map((name, idx) => (
               <button
                 key={name}
                 onClick={() => setActiveTab(idx)}
                 className={`
-                  flex-shrink-0 px-3 py-1.5 text-xs font-medium transition-all rounded-lg font-sans
+                  flex-shrink-0 px-3 py-1.5 text-xs font-bold transition-all rounded-none font-mono uppercase tracking-wide
                   ${activeTab === idx
-                    ? 'bg-background text-foreground shadow-sm border border-border/50'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-background/50'}
+                    ? 'bg-primary text-primary-foreground border-2 border-foreground shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-background border-2 border-transparent hover:border-foreground'}
                 `}
               >
                 {name}
@@ -125,7 +125,7 @@ export default function Stage2({ rankings, labelToModel, aggregateRankings, isLo
             ))}
           </div>
 
-          <div className="p-6 bg-card min-h-[150px]">
+          <div className="bg-card min-h-[150px]">
             <div className="markdown-content text-[15px] leading-relaxed text-foreground font-serif break-words overflow-wrap-anywhere overflow-x-hidden" style={{ wordWrap: 'break-word', overflowWrap: 'anywhere', maxWidth: '100%' }}>
               <ReactMarkdown
                 components={{
@@ -135,14 +135,14 @@ export default function Stage2({ rankings, labelToModel, aggregateRankings, isLo
 
                     if (inline) {
                       return (
-                        <code className={cn("bg-secondary/50 px-1.5 py-0.5 rounded text-sm font-mono text-primary", className)} {...props}>
+                        <code className={cn("bg-secondary px-1.5 py-0.5 border border-foreground text-sm font-mono text-primary font-bold", className)} {...props}>
                           {children}
                         </code>
                       );
                     }
 
                     return (
-                      <div className="not-prose my-4 rounded-xl overflow-hidden border border-border/40 bg-card">
+                      <div className="not-prose my-6 border-2 border-foreground brutal-shadow-sm bg-card">
                         <CodeBlockCode
                           code={String(children).replace(/\n$/, '')}
                           language={language}

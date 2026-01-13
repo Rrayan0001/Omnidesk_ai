@@ -44,23 +44,23 @@ export default function Stage3({ finalResponse, isLoading }) {
   return (
     <div className="w-full mb-8 animate-in fade-in slide-in-from-bottom-4 duration-500 delay-300">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-xs font-sans font-bold text-muted-foreground uppercase tracking-widest flex items-center gap-2 opacity-80">
+        <h3 className="text-xs font-sans font-bold text-muted-foreground flex items-center gap-2 opacity-80">
           <span className="w-1.5 h-1.5 rounded-full bg-primary/60"></span>
           Verdict
         </h3>
       </div>
 
-      <div className="relative bg-card border border-border/40 rounded-xl overflow-hidden shadow-sm">
-        <div className="p-6">
-          <div className="flex items-center gap-3 mb-6 border-b border-border/40 pb-4">
-            <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center text-lg">
+      <div className="relative bg-card border-2 border-foreground brutal-shadow-sm p-6">
+        <div>
+          <div className="flex items-center gap-3 mb-6 border-b-2 border-foreground pb-4 bg-secondary/30 p-2 brutal-border">
+            <div className="w-10 h-10 bg-primary/20 text-primary border-2 border-foreground flex items-center justify-center text-xl">
               👑
             </div>
             <div>
-              <div className="text-xs font-bold text-foreground uppercase tracking-widest font-sans opacity-90">
+              <div className="text-sm font-black text-foreground uppercase tracking-widest font-display">
                 Chairman's Decision
               </div>
-              <div className="text-xs text-muted-foreground font-mono mt-0.5 opacity-70">
+              <div className="text-xs text-muted-foreground font-mono mt-0.5 uppercase tracking-wide">
                 Synthesized Verdict
               </div>
             </div>
@@ -76,14 +76,14 @@ export default function Stage3({ finalResponse, isLoading }) {
 
                   if (inline) {
                     return (
-                      <code className={cn("bg-secondary/50 px-1.5 py-0.5 rounded text-sm font-mono text-primary", className)} {...props}>
+                      <code className={cn("bg-secondary px-1.5 py-0.5 border border-foreground text-sm font-mono text-primary font-bold", className)} {...props}>
                         {children}
                       </code>
                     );
                   }
 
                   return (
-                    <div className="not-prose my-4 rounded-xl overflow-hidden border border-border/40 bg-card">
+                    <div className="not-prose my-6 border-2 border-foreground brutal-shadow-sm bg-card">
                       <CodeBlockCode
                         code={String(children).replace(/\n$/, '')}
                         language={language}
@@ -94,7 +94,7 @@ export default function Stage3({ finalResponse, isLoading }) {
                 },
                 table({ children }) {
                   return (
-                    <div className="my-6 w-full overflow-x-auto rounded-lg border border-border/40">
+                    <div className="my-6 w-full overflow-x-auto border-2 border-foreground brutal-shadow-sm">
                       <table className="w-full text-sm text-left">
                         {children}
                       </table>
@@ -103,47 +103,47 @@ export default function Stage3({ finalResponse, isLoading }) {
                 },
                 thead({ children }) {
                   return (
-                    <thead className="bg-secondary/30 text-xs uppercase font-semibold text-muted-foreground border-b border-border/40">
+                    <thead className="bg-secondary text-xs uppercase font-bold text-foreground border-b-2 border-foreground">
                       {children}
                     </thead>
                   );
                 },
                 tbody({ children }) {
-                  return <tbody className="divide-y divide-border/40">{children}</tbody>;
+                  return <tbody className="divide-y-2 divide-foreground/20">{children}</tbody>;
                 },
                 tr({ children }) {
-                  return <tr className="hover:bg-secondary/10 transition-colors">{children}</tr>;
+                  return <tr className="hover:bg-secondary/50 transition-colors">{children}</tr>;
                 },
                 th({ children }) {
-                  return <th className="px-4 py-3 whitespace-nowrap">{children}</th>;
+                  return <th className="px-4 py-3 whitespace-nowrap border-r-2 border-foreground last:border-r-0">{children}</th>;
                 },
                 td({ children }) {
-                  return <td className="px-4 py-3 align-top">{children}</td>;
+                  return <td className="px-4 py-3 align-top border-r-2 border-foreground/20 last:border-r-0">{children}</td>;
                 },
                 h1({ children }) {
-                  return <h1 className="text-2xl font-bold mt-8 mb-4 first:mt-0">{children}</h1>;
+                  return <h1 className="text-3xl font-black mt-8 mb-4 first:mt-0 font-display uppercase tracking-tight">{children}</h1>;
                 },
                 h2({ children }) {
-                  return <h2 className="text-xl font-bold mt-6 mb-3">{children}</h2>;
+                  return <h2 className="text-2xl font-bold mt-6 mb-3 font-display uppercase">{children}</h2>;
                 },
                 h3({ children }) {
-                  return <h3 className="text-lg font-semibold mt-5 mb-2">{children}</h3>;
+                  return <h3 className="text-xl font-bold mt-5 mb-2 font-display uppercase">{children}</h3>;
                 },
                 ul({ children }) {
-                  return <ul className="list-disc list-outside ml-5 my-4 space-y-1">{children}</ul>;
+                  return <ul className="list-disc list-outside ml-5 my-4 space-y-2 marker:text-primary marker:text-xl">{children}</ul>;
                 },
                 ol({ children }) {
-                  return <ol className="list-decimal list-outside ml-5 my-4 space-y-1">{children}</ol>;
+                  return <ol className="list-decimal list-outside ml-5 my-4 space-y-2 font-bold marker:text-primary">{children}</ol>;
                 },
                 li({ children }) {
-                  return <li className="pl-1">{children}</li>;
+                  return <li className="pl-1 font-medium">{children}</li>;
                 },
                 p({ children }) {
-                  return <p className="my-3 last:mb-0">{children}</p>;
+                  return <p className="my-4 last:mb-0 leading-loose">{children}</p>;
                 },
                 blockquote({ children }) {
                   return (
-                    <blockquote className="border-l-4 border-primary/30 pl-4 py-1 my-4 bg-secondary/20 rounded-r italic">
+                    <blockquote className="border-l-4 border-primary pl-4 py-2 my-6 bg-secondary font-medium italic border-2 border-l-8 border-foreground brutal-shadow-sm">
                       {children}
                     </blockquote>
                   );

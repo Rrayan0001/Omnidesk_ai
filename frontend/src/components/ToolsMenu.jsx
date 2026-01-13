@@ -89,12 +89,12 @@ export default function ToolsMenu({
     return (
         <div
             ref={menuRef}
-            className="absolute bottom-full left-0 mb-2 z-50 w-[320px] max-w-[90vw] max-h-[350px] overflow-y-auto bg-background/95 backdrop-blur-xl border border-border/40 rounded-2xl shadow-2xl animate-in slide-in-from-bottom-2 duration-200"
+            className="absolute bottom-full left-0 mb-4 z-50 w-[320px] max-w-[90vw] max-h-[350px] overflow-y-auto bg-background border-3 border-foreground brutal-shadow animate-in slide-in-from-bottom-2 duration-200"
         >
             {/* Header */}
-            <div className="px-4 py-3 border-b border-border/40 bg-secondary/20 flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-primary" />
-                <span className="text-xs font-sans font-medium tracking-widest uppercase text-muted-foreground">
+            <div className="px-4 py-3 border-b-3 border-foreground bg-primary flex items-center gap-2 sticky top-0 z-10">
+                <Sparkles className="w-4 h-4 text-primary-foreground" />
+                <span className="text-xs font-display font-bold tracking-widest uppercase text-primary-foreground text-spread text-glitch">
                     AI Tools
                 </span>
             </div>
@@ -113,13 +113,13 @@ export default function ToolsMenu({
                                 }
                             }}
                             className={cn(
-                                "w-full flex items-start gap-4 p-3 rounded-xl transition-all duration-200 text-left",
-                                "hover:bg-secondary/60 hover:shadow-sm",
-                                activeTool === tool.id ? "bg-secondary/80" : "bg-transparent"
+                                "w-full flex items-start gap-4 p-3 transition-all duration-100 text-left border-b-2 border-foreground/20 last:border-b-0",
+                                "hover:bg-accent hover:border-foreground",
+                                activeTool === tool.id ? "bg-accent border-b-2 border-foreground" : "bg-transparent"
                             )}
                         >
                             <div className={cn(
-                                "p-2 rounded-lg bg-background/50 border border-border/40 shadow-sm shrink-0 transition-colors group-hover:border-primary/20",
+                                "p-2 bg-background border-2 border-foreground shrink-0 transition-colors brutal-shadow-sm",
                                 tool.color
                             )}>
                                 {tool.icon}
@@ -127,7 +127,7 @@ export default function ToolsMenu({
 
                             <div className="flex-1 min-w-0">
                                 <div className="flex items-center justify-between">
-                                    <span className="text-sm font-bold text-foreground font-sans">
+                                    <span className="text-sm font-bold text-foreground font-sans uppercase tracking-wide">
                                         {tool.title}
                                     </span>
                                     {tool.subItems.length > 0 && (
@@ -137,7 +137,7 @@ export default function ToolsMenu({
                                         )} />
                                     )}
                                 </div>
-                                <p className="text-[11px] text-muted-foreground mt-0.5 font-sans leading-tight">
+                                <p className="text-[10px] text-muted-foreground mt-1 font-mono leading-tight uppercase">
                                     {tool.description}
                                 </p>
                             </div>
@@ -145,7 +145,7 @@ export default function ToolsMenu({
 
                         {/* Sub-menu */}
                         {activeTool === tool.id && tool.subItems.length > 0 && (
-                            <div className="ml-[52px] mt-1 mb-2 space-y-0.5 border-l-2 border-border/40 pl-2 animate-in slide-in-from-left-2 duration-150 fade-in">
+                            <div className="ml-[52px] mt-1 mb-2 space-y-0.5 border-l-3 border-foreground pl-3 animate-in slide-in-from-left-2 duration-150 fade-in">
                                 {tool.subItems.map((item) => (
                                     <button
                                         key={item.id}
@@ -153,7 +153,7 @@ export default function ToolsMenu({
                                             onModeChange(tool.id, item.id);
                                             onClose();
                                         }}
-                                        className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-secondary/40 transition-colors text-left font-sans"
+                                        className="w-full flex items-center justify-between px-3 py-2 text-xs font-bold text-muted-foreground hover:text-primary-foreground hover:bg-primary transition-colors text-left font-mono uppercase tracking-wide border-2 border-transparent hover:border-foreground brutal-shadow-hover"
                                     >
                                         <span>{item.label}</span>
                                     </button>
