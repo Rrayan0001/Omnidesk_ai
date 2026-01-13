@@ -135,9 +135,13 @@ function Dashboard() {
           setCurrentConversation((prev) => {
             if (prev?.id !== conversationId) return prev;
             const messages = [...prev.messages];
-            const lastMsg = messages[messages.length - 1];
+            const lastMsgIndex = messages.length - 1;
+            const lastMsg = messages[lastMsgIndex];
             if (lastMsg && lastMsg.role === 'assistant' && lastMsg.loading) {
-              lastMsg.loading.stage1 = true;
+              messages[lastMsgIndex] = {
+                ...lastMsg,
+                loading: { ...lastMsg.loading, stage1: true }
+              };
             }
             return { ...prev, messages };
           });
@@ -147,10 +151,14 @@ function Dashboard() {
           setCurrentConversation((prev) => {
             if (prev?.id !== conversationId) return prev;
             const messages = [...prev.messages];
-            const lastMsg = messages[messages.length - 1];
+            const lastMsgIndex = messages.length - 1;
+            const lastMsg = messages[lastMsgIndex];
             if (lastMsg && lastMsg.role === 'assistant') {
-              lastMsg.stage1 = event.data;
-              if (lastMsg.loading) lastMsg.loading.stage1 = false;
+              messages[lastMsgIndex] = {
+                ...lastMsg,
+                stage1: event.data,
+                loading: lastMsg.loading ? { ...lastMsg.loading, stage1: false } : null
+              };
             }
             return { ...prev, messages };
           });
@@ -160,9 +168,13 @@ function Dashboard() {
           setCurrentConversation((prev) => {
             if (prev?.id !== conversationId) return prev;
             const messages = [...prev.messages];
-            const lastMsg = messages[messages.length - 1];
+            const lastMsgIndex = messages.length - 1;
+            const lastMsg = messages[lastMsgIndex];
             if (lastMsg && lastMsg.role === 'assistant' && lastMsg.loading) {
-              lastMsg.loading.stage2 = true;
+              messages[lastMsgIndex] = {
+                ...lastMsg,
+                loading: { ...lastMsg.loading, stage2: true }
+              };
             }
             return { ...prev, messages };
           });
@@ -172,11 +184,15 @@ function Dashboard() {
           setCurrentConversation((prev) => {
             if (prev?.id !== conversationId) return prev;
             const messages = [...prev.messages];
-            const lastMsg = messages[messages.length - 1];
+            const lastMsgIndex = messages.length - 1;
+            const lastMsg = messages[lastMsgIndex];
             if (lastMsg && lastMsg.role === 'assistant') {
-              lastMsg.stage2 = event.data;
-              lastMsg.metadata = event.metadata;
-              if (lastMsg.loading) lastMsg.loading.stage2 = false;
+              messages[lastMsgIndex] = {
+                ...lastMsg,
+                stage2: event.data,
+                metadata: event.metadata,
+                loading: lastMsg.loading ? { ...lastMsg.loading, stage2: false } : null
+              };
             }
             return { ...prev, messages };
           });
@@ -186,9 +202,13 @@ function Dashboard() {
           setCurrentConversation((prev) => {
             if (prev?.id !== conversationId) return prev;
             const messages = [...prev.messages];
-            const lastMsg = messages[messages.length - 1];
+            const lastMsgIndex = messages.length - 1;
+            const lastMsg = messages[lastMsgIndex];
             if (lastMsg && lastMsg.role === 'assistant' && lastMsg.loading) {
-              lastMsg.loading.stage3 = true;
+              messages[lastMsgIndex] = {
+                ...lastMsg,
+                loading: { ...lastMsg.loading, stage3: true }
+              };
             }
             return { ...prev, messages };
           });
@@ -198,10 +218,14 @@ function Dashboard() {
           setCurrentConversation((prev) => {
             if (prev?.id !== conversationId) return prev;
             const messages = [...prev.messages];
-            const lastMsg = messages[messages.length - 1];
+            const lastMsgIndex = messages.length - 1;
+            const lastMsg = messages[lastMsgIndex];
             if (lastMsg && lastMsg.role === 'assistant') {
-              lastMsg.stage3 = event.data;
-              if (lastMsg.loading) lastMsg.loading.stage3 = false;
+              messages[lastMsgIndex] = {
+                ...lastMsg,
+                stage3: event.data,
+                loading: null
+              };
             }
             return { ...prev, messages };
           });

@@ -132,20 +132,27 @@ Now provide your evaluation and ranking:`;
  * @returns {Promise<Object>} {model, response}
  */
 export async function stage3SynthesizeFinal(userQuery, stage1Results, stage2Results, chairman) {
-    // Build comprehensive context for chairman
+    // Truncate helper - limit each response to ~1000 chars to avoid context overflow
+    const truncate = (text, maxLen = 1000) => {
+        if (!text || text.length <= maxLen) return text;
+        return text.slice(0, maxLen) + '... [truncated]';
+    };
+
+    // Build truncated context for chairman
     const stage1Text = stage1Results.map(r =>
-        `Model: ${r.model}\nResponse: ${r.response}`
+        `Model: ${r.model}\nResponse: ${truncate(r.response, 800)}`
     ).join('\n\n');
 
+    // Only include parsed rankings, not full ranking text (which is very long)
     const stage2Text = stage2Results.map(r =>
-        `Model: ${r.model}\nRanking: ${r.ranking}`
+        `Model: ${r.model}\nParsed Ranking: ${(r.parsed_ranking || []).join(', ')}`
     ).join('\n\n');
 
     const chairmanPrompt = `You are the Chairman of an LLM Council. Multiple AI models have provided responses to a user's question, and then ranked each other's responses.
 
 Original Question: ${userQuery}
 
-STAGE 1 - Individual Responses:
+STAGE 1 - Individual Responses (summarized):
 ${stage1Text}
 
 STAGE 2 - Peer Rankings:

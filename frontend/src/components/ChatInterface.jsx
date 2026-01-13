@@ -63,25 +63,29 @@ const MessageBubble = memo(({ msg, currentMode, theme }) => (
                     {currentMode === 'image' ? 'GENERATING IMAGE...' : currentMode === 'file' ? 'ANALYZING FILE...' : 'THINKING...'}
                   </div>
                 ) : (
-                  <div className="prose prose-sm max-w-none text-foreground leading-relaxed break-words overflow-wrap-anywhere overflow-x-hidden" style={{ wordWrap: 'break-word', overflowWrap: 'anywhere', maxWidth: '100%' }}>
+                  <div className="prose prose-sm max-w-none text-foreground leading-relaxed break-words overflow-hidden">
                     <ReactMarkdown
                       remarkPlugins={[remarkGfm]}
                       components={{
                         // Use div instead of p to avoid nesting issues with code blocks
                         p({ children }) {
-                          return <div className="mb-4 leading-loose tracking-wide font-medium">{children}</div>;
+                          return <div className="mb-4 leading-loose tracking-wide font-medium text-sm md:text-base break-words">{children}</div>;
                         },
                         table({ children }) {
-                          return <div className="overflow-x-auto my-6 border-2 border-foreground brutal-shadow-sm"><table className="w-full text-sm text-left">{children}</table></div>;
+                          return (
+                            <div className="w-full overflow-x-auto my-6 border-2 border-foreground brutal-shadow-sm">
+                              <table className="w-full text-sm text-left min-w-[300px]">{children}</table>
+                            </div>
+                          );
                         },
                         thead({ children }) {
                           return <thead className="bg-secondary text-xs uppercase font-bold text-foreground border-b-2 border-foreground">{children}</thead>;
                         },
                         th({ children }) {
-                          return <th className="px-4 py-3 border-r-2 border-foreground last:border-r-0 whitespace-nowrap">{children}</th>;
+                          return <th className="px-3 py-2 md:px-4 md:py-3 border-r-2 border-foreground last:border-r-0 whitespace-nowrap">{children}</th>;
                         },
                         td({ children }) {
-                          return <td className="px-4 py-3 border-b-2 border-r-2 border-foreground/20 last:border-r-0">{children}</td>;
+                          return <td className="px-3 py-2 md:px-4 md:py-3 border-b-2 border-r-2 border-foreground/20 last:border-r-0 max-w-[200px] truncate md:max-w-none md:whitespace-normal">{children}</td>;
                         },
                         code({ node, inline, className, children, ...props }) {
                           const match = /language-(\w+)/.exec(className || '');
@@ -89,19 +93,21 @@ const MessageBubble = memo(({ msg, currentMode, theme }) => (
 
                           if (inline) {
                             return (
-                              <code className={cn("bg-secondary px-1.5 py-0.5 border border-foreground text-sm font-mono text-primary font-bold", className)} {...props}>
+                              <code className={cn("bg-secondary px-1.5 py-0.5 border border-foreground text-xs md:text-sm font-mono text-primary font-bold break-all", className)} {...props}>
                                 {children}
                               </code>
                             );
                           }
 
                           return (
-                            <div className="not-prose my-6 border-2 border-foreground brutal-shadow-sm bg-card">
-                              <CodeBlockCode
-                                code={String(children).replace(/\n$/, '')}
-                                language={language}
-                                theme={theme === 'dark' ? 'github-dark' : 'github-light'}
-                              />
+                            <div className="not-prose my-6 border-2 border-foreground brutal-shadow-sm bg-card w-full max-w-[85vw] md:max-w-full overflow-hidden">
+                              <div className="overflow-x-auto p-0">
+                                <CodeBlockCode
+                                  code={String(children).replace(/\n$/, '')}
+                                  language={language}
+                                  theme={theme === 'dark' ? 'github-dark' : 'github-light'}
+                                />
+                              </div>
                             </div>
                           );
                         }
