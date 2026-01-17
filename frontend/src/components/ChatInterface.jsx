@@ -109,7 +109,7 @@ const MessageBubble = memo(({ msg, currentMode, theme }) => (
         </div>
         {/* User message footer: timestamp + copy */}
         <div className="flex items-center justify-end gap-2 mt-1 px-1">
-          <CopyButton text={msg.content} className="opacity-0 group-hover:opacity-100" />
+          <CopyButton text={msg.content} />
           <span className="text-[10px] md:text-xs text-muted-foreground font-mono">
             {formatTimestamp(msg.timestamp)}
           </span>
@@ -215,7 +215,7 @@ const MessageBubble = memo(({ msg, currentMode, theme }) => (
                     </div>
                     {/* Assistant message footer: copy + timestamp */}
                     <div className="flex items-center gap-2 mt-2 pt-2 border-t border-foreground/10">
-                      <CopyButton text={msg.stage3?.response || msg.content || ''} className="opacity-0 group-hover:opacity-100" />
+                      <CopyButton text={msg.stage3?.response || msg.content || ''} />
                       <span className="text-[10px] md:text-xs text-muted-foreground font-mono">
                         {formatTimestamp(msg.timestamp)}
                       </span>
@@ -262,7 +262,7 @@ const MessageBubble = memo(({ msg, currentMode, theme }) => (
               {/* Council timestamp */}
               {msg.timestamp && (
                 <div className="flex items-center gap-2 mt-2 pt-2 border-t border-foreground/10">
-                  <CopyButton text={msg.stage3?.response || ''} className="opacity-0 group-hover:opacity-100" />
+                  <CopyButton text={msg.stage3?.response || ''} />
                   <span className="text-[10px] md:text-xs text-muted-foreground font-mono">
                     {formatTimestamp(msg.timestamp)}
                   </span>

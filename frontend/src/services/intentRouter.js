@@ -66,6 +66,14 @@ const BROAD_SEARCH_KEYWORDS = [
     'release date', 'when is',
 ];
 
+// Queries that should NOT trigger search (we can answer directly)
+const NO_SEARCH_PATTERNS = [
+    // Time queries - we inject current time into system prompt
+    /\b(what('s| is) the time|current time|time (now|in)|what time is it)\b/i,
+    /\b(what('s| is) the date|today('s| is) date|current date|date today)\b/i,
+    /\b(what day is|what's today|today is)\b/i,
+];
+
 /**
  * Determine if a query requires real-time web search.
  * @param {string} query - The user's query
@@ -77,6 +85,13 @@ export function isRealtimeQuery(query) {
     }
 
     const lowerQuery = query.toLowerCase().trim();
+
+    // Check if this is a query we can answer directly (no search needed)
+    for (const pattern of NO_SEARCH_PATTERNS) {
+        if (pattern.test(lowerQuery)) {
+            return false;
+        }
+    }
 
     // Check for explicit realtime keywords first (highest priority)
     for (const keyword of REALTIME_KEYWORDS) {

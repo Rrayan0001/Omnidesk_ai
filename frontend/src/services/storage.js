@@ -63,7 +63,11 @@ export async function getConversation(conversationId) {
         id: convData.id,
         created_at: convData.created_at,
         title: convData.title || 'New Chat',
-        messages: messages || []
+        // Map created_at to timestamp for UI compatibility
+        messages: (messages || []).map(msg => ({
+            ...msg,
+            timestamp: msg.created_at || msg.timestamp
+        }))
     };
 }
 

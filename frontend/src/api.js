@@ -215,8 +215,23 @@ export const api = {
           ? `${combinedContext}\nUser Question: ${content}`
           : content;
 
-        // Combine history with current message
+        // Get current time info for the AI
+        const now = new Date();
+        const timeInfo = `Current date and time: ${now.toLocaleString('en-US', {
+          weekday: 'long',
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          hour: 'numeric',
+          minute: '2-digit',
+          second: '2-digit',
+          hour12: true,
+          timeZoneName: 'short'
+        })}. User timezone: ${Intl.DateTimeFormat().resolvedOptions().timeZone}.`;
+
+        // Combine history with current message, including time context
         const messages = [
+          { role: 'system', content: `You are a helpful AI assistant. ${timeInfo}` },
           ...historyMessages,
           { role: 'user', content: userContent }
         ];
