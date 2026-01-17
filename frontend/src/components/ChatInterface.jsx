@@ -35,7 +35,7 @@ const MessageBubble = memo(({ msg, currentMode, theme }) => (
         </div>
       </>
     ) : (
-      <div className="w-full min-w-0 space-y-4 md:space-y-6 overflow-x-hidden">
+      <div className="w-full min-w-0 max-w-[calc(100vw-4rem)] md:max-w-none space-y-4 md:space-y-6 overflow-x-hidden">
         {/* Check message mode from metadata */}
         {
           msg.metadata?.mode === 'chat' || msg.metadata?.mode === 'image' || msg.metadata?.mode === 'file' ? (
@@ -120,7 +120,7 @@ const MessageBubble = memo(({ msg, currentMode, theme }) => (
                                   code={String(children).replace(/\n$/, '')}
                                   language={language}
                                   theme={theme === 'dark' ? 'github-dark' : 'github-light'}
-                                  className="whitespace-pre-wrap break-words text-xs md:text-sm md:whitespace-pre"
+                                  className="whitespace-pre text-xs md:text-sm"
                                 />
                               </div>
                             </div>
