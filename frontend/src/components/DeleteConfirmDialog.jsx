@@ -1,11 +1,12 @@
 import { AlertTriangle } from 'lucide-react';
+import { createPortal } from 'react-dom';
 
 export function DeleteConfirmDialog({ open, onOpenChange, onConfirm, conversationTitle, isDeleteAll = false }) {
     if (!open) return null;
 
-    return (
+    return createPortal(
         <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm"
             onClick={() => onOpenChange(false)}
         >
             <div
@@ -56,6 +57,7 @@ export function DeleteConfirmDialog({ open, onOpenChange, onConfirm, conversatio
                     </button>
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 }

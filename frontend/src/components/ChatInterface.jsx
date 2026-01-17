@@ -115,12 +115,12 @@ const MessageBubble = memo(({ msg, currentMode, theme }) => (
 
                           return (
                             <div className="not-prose my-6 border-2 border-foreground brutal-shadow-sm bg-card w-full max-w-full overflow-hidden">
-                              <div className="w-full">
+                              <div className="w-full overflow-x-auto">
                                 <CodeBlockCode
                                   code={String(children).replace(/\n$/, '')}
                                   language={language}
                                   theme={theme === 'dark' ? 'github-dark' : 'github-light'}
-                                  className="whitespace-pre-wrap break-words"
+                                  className="whitespace-pre-wrap break-words text-xs md:text-sm md:whitespace-pre"
                                 />
                               </div>
                             </div>

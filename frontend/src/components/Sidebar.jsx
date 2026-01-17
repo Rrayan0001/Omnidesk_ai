@@ -157,7 +157,7 @@ export default function Sidebar({
                             setConversationToDelete(conv);
                             setDeleteDialogOpen(true);
                           }}
-                          className="ml-auto opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-destructive/20 text-muted-foreground hover:text-destructive transition-all"
+                          className="ml-auto p-1 rounded hover:bg-destructive/20 text-muted-foreground hover:text-destructive transition-all"
                         >
                           <Trash2 className="w-3 h-3" />
                         </button>
