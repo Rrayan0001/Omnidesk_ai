@@ -9,6 +9,7 @@ export const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY || '';
 export const GOOGLE_API_KEY = import.meta.env.VITE_GOOGLE_API_KEY || '';
 export const GOOGLE_SEARCH_API_KEY = import.meta.env.VITE_GOOGLE_SEARCH_API_KEY || '';
 export const GOOGLE_SEARCH_CX = import.meta.env.VITE_GOOGLE_SEARCH_CX || '';
+export const ALPHA_VANTAGE_API_KEY = import.meta.env.VITE_ALPHA_VANTAGE_API_KEY || '';
 
 // API Endpoints
 export const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
@@ -41,6 +42,11 @@ export const COUNCIL_MODELS = [
 // Chat Models (for Normal Chat mode)
 export const CHAT_MODELS = [
     {
+        id: 'openai/gpt-oss-120b',
+        provider: 'groq',
+        name: 'GPT OSS 120B'
+    },
+    {
         id: 'llama-3.3-70b-versatile',
         provider: 'groq',
         name: 'Llama 3.3 70B'
@@ -54,11 +60,6 @@ export const CHAT_MODELS = [
         id: 'openai/gpt-oss-20b',
         provider: 'openrouter',
         name: 'GPT OSS 20B'
-    },
-    {
-        id: 'openai/gpt-oss-120b',
-        provider: 'groq',
-        name: 'GPT OSS 120B'
     },
     {
         id: 'google/gemma-3-27b-it:free',

@@ -14,6 +14,7 @@ import { extractFileContent, analyzeFileContent, analyzeImage } from './services
 import { COUNCIL_MODELS, CHAIRMAN_MODEL, CHAT_MODELS, ROOMS, DEFAULT_ROOM } from './services/config';
 import { searchGoogle, formatSearchContext, isSearchConfigured } from './services/searchClient';
 import { isRealtimeQuery } from './services/intentRouter';
+import { isFinanceConfigured, isFinancialQuery, extractStockSymbol, getStockQuote, getDailyTimeSeries, formatFinanceContext } from './services/financeClient';
 
 /**
  * Get the current user ID from Supabase auth.
@@ -122,43 +123,115 @@ export const api = {
           selectedModel = CHAT_MODELS[0]; // Default to first chat model
         }
 
-        // Check if query needs real-time search
+        // Check if query needs real-time search or financial data
         let searchContext = null;
         let searchResults = null;
+        let financeContext = null;
 
-        if (isSearchConfigured() && isRealtimeQuery(content)) {
-          onEvent('search_start', {});
+        // First, check if this is a financial query and Alpha Vantage is configured (and not limit-reached)
+        if (isFinanceConfigured() && !options.skipAlphaVantage && isFinancialQuery(content)) {
+          const stockSymbol = extractStockSymbol(content);
+          if (stockSymbol) {
+            onEvent('search_start', { type: 'finance', symbol: stockSymbol });
+            try {
+              // Fetch both current quote and historical data
+              const [quote, history] = await Promise.all([
+                getStockQuote(stockSymbol),
+                getDailyTimeSeries(stockSymbol, 'compact') // Last 100 trading days
+              ]);
+
+              if (quote || history) {
+                financeContext = formatFinanceContext(quote, history);
+                onEvent('search_complete', {
+                  type: 'finance',
+                  symbol: stockSymbol,
+                  quote,
+                  historyDays: history?.length || 0
+                });
+              }
+            } catch (financeError) {
+              console.warn('Finance API failed, falling back to web search:', financeError);
+            }
+          }
+        }
+
+        // Fall back to web search if no finance data or if forceSearch/realtime query
+        const shouldSearch = !financeContext && isSearchConfigured() && (options.forceSearch || isRealtimeQuery(content));
+
+        if (shouldSearch) {
+          onEvent('search_start', { type: 'web' });
           try {
             searchResults = await searchGoogle(content, 5);
             if (searchResults && searchResults.length > 0) {
               searchContext = formatSearchContext(searchResults);
-              onEvent('search_complete', { results: searchResults });
+              onEvent('search_complete', { type: 'web', results: searchResults });
             }
           } catch (searchError) {
             console.warn('Search failed, continuing without search:', searchError);
           }
         }
 
+        // Combine contexts (finance takes priority)
+        const combinedContext = financeContext || searchContext;
+
         onEvent('chat_start', { model: selectedModel.name, hasSearch: !!searchContext });
 
         let fullResponse = '';
 
-        // Build messages with optional search context
-        const userContent = searchContext
-          ? `${searchContext}\nUser Question: ${content}`
+        // Build conversation history for context (limited to prevent token overflow)
+        const MAX_HISTORY_MESSAGES = 4; // Keep it small for free-tier models
+        const MAX_CHARS_PER_MESSAGE = 500; // Truncate long messages
+        const conversation = await storage.getConversation(conversationId);
+        const historyMessages = [];
+
+        if (conversation && conversation.messages) {
+          // Get previous messages (exclude the current user message we just added)
+          const previousMessages = conversation.messages.slice(0, -1);
+
+          // Take last N messages for context
+          const recentMessages = previousMessages.slice(-MAX_HISTORY_MESSAGES);
+
+          for (const msg of recentMessages) {
+            if (msg.role === 'user') {
+              const truncatedContent = msg.content.length > MAX_CHARS_PER_MESSAGE
+                ? msg.content.slice(0, MAX_CHARS_PER_MESSAGE) + '...'
+                : msg.content;
+              historyMessages.push({ role: 'user', content: truncatedContent });
+            } else if (msg.role === 'assistant') {
+              // Use the final response content
+              const assistantContent = msg.stage3?.response || msg.content || '';
+              if (assistantContent) {
+                const truncatedContent = assistantContent.length > MAX_CHARS_PER_MESSAGE
+                  ? assistantContent.slice(0, MAX_CHARS_PER_MESSAGE) + '...'
+                  : assistantContent;
+                historyMessages.push({ role: 'assistant', content: truncatedContent });
+              }
+            }
+          }
+        }
+
+        // Build messages with optional search/finance context
+        const userContent = combinedContext
+          ? `${combinedContext}\nUser Question: ${content}`
           : content;
-        const messages = [{ role: 'user', content: userContent }];
+
+        // Combine history with current message
+        const messages = [
+          ...historyMessages,
+          { role: 'user', content: userContent }
+        ];
 
         await streamModel(selectedModel, messages, (chunk) => {
           fullResponse += chunk;
           onEvent('chat_chunk', { chunk });
         });
 
-        // Save the complete message with search metadata
+        // Save the complete message with search/finance metadata
         await storage.addChatMessage(conversationId, fullResponse, {
           mode: 'chat',
           model: selectedModel.name,
-          hasSearch: !!searchContext,
+          hasSearch: !!combinedContext,
+          hasFinanceData: !!financeContext,
           searchSources: searchResults?.map(r => ({ title: r.title, source: r.source, url: r.url }))
         });
 

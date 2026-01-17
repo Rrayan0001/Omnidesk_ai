@@ -11,7 +11,7 @@ function Dashboard() {
   const [currentConversationId, setCurrentConversationId] = useState(null);
   const [currentConversation, setCurrentConversation] = useState(null);
   const [loadingStates, setLoadingStates] = useState({});
-  const { incrementUsage } = useSearchUsage();
+  const { incrementGoogleUsage, incrementAlphaVantageUsage, isAlphaVantageLimitReached } = useSearchUsage();
 
   // Load conversations on mount
   useEffect(() => {
@@ -247,7 +247,7 @@ function Dashboard() {
           break;
 
         case 'search_complete':
-          console.log('Web search completed:', event.results?.length, 'results');
+          console.log('Search completed:', event.type, event.results?.length || event.historyDays || 0);
           setCurrentConversation((prev) => {
             if (prev?.id !== conversationId) return prev;
             const messages = [...prev.messages];
@@ -257,13 +257,19 @@ function Dashboard() {
                 ...lastMsg.metadata,
                 isSearching: false,
                 hasSearch: true,
-                searchResults: event.results
+                searchType: event.type,
+                searchResults: event.results || null,
+                financeSymbol: event.symbol || null
               };
             }
             return { ...prev, messages };
           });
-          // Increment search usage count
-          incrementUsage();
+          // Increment usage based on search type
+          if (event.type === 'web') {
+            incrementGoogleUsage();
+          } else if (event.type === 'finance') {
+            incrementAlphaVantageUsage();
+          }
           break;
 
         case 'chat_start':
@@ -403,7 +409,7 @@ function Dashboard() {
 
         try {
           // Optimistically add user message to UI
-          const userMessage = { role: 'user', content };
+          const userMessage = { role: 'user', content, timestamp: new Date().toISOString() };
 
           // Create a partial assistant message
           const assistantMessage = {
@@ -411,6 +417,7 @@ function Dashboard() {
             stage1: null,
             stage2: null,
             stage3: null,
+            timestamp: new Date().toISOString(),
             metadata: {
               mode: options.mode || 'chat',
               model: options.model
@@ -426,7 +433,7 @@ function Dashboard() {
           });
 
           // Send message with streaming using the streaming callback
-          await api.sendMessageStream(conversationId, content, options, (eventType, event) => {
+          await api.sendMessageStream(conversationId, content, { ...options, skipAlphaVantage: isAlphaVantageLimitReached() }, (eventType, event) => {
             handleStreamEvent(conversationId, eventType, event);
           });
 
@@ -525,7 +532,7 @@ function Dashboard() {
     setLoadingStates(prev => ({ ...prev, [currentConversationId]: true }));
     try {
       // Optimistically add user message to UI
-      const userMessage = { role: 'user', content };
+      const userMessage = { role: 'user', content, timestamp: new Date().toISOString() };
       setCurrentConversation((prev) => ({
         ...prev,
         messages: [...prev.messages, userMessage],
@@ -537,6 +544,7 @@ function Dashboard() {
         stage1: null,
         stage2: null,
         stage3: null,
+        timestamp: new Date().toISOString(),
         metadata: {
           mode: options.mode || 'chat',
           model: options.model
@@ -551,7 +559,7 @@ function Dashboard() {
       }));
 
       // Send message with streaming
-      await api.sendMessageStream(currentConversationId, content, options, (eventType, event) => {
+      await api.sendMessageStream(currentConversationId, content, { ...options, skipAlphaVantage: isAlphaVantageLimitReached() }, (eventType, event) => {
         handleStreamEvent(currentConversationId, eventType, event);
       });
 

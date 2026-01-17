@@ -1,9 +1,8 @@
-import { useState, useEffect, useRef } from 'react';
-import { Send, Loader2, PanelLeft, Trash2, Sparkles, Bot, Users, Cpu, Image as ImageIcon, Sun, Moon, Upload, X, FileText, ImageIcon as FileImage } from 'lucide-react';
+import { useState, useEffect, useRef, memo } from 'react';
+import { Send, Loader2, PanelLeft, Trash2, Sparkles, Bot, Users, Cpu, Image as ImageIcon, Sun, Moon, Upload, X, FileText, ImageIcon as FileImage, Globe, Copy, Check } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useTheme } from "@/contexts/ThemeContext";
-// import { ChatInput, ChatInputTextArea, ChatInputSubmit } from '@/components/ui/chat-input';
 import RoomDetectionModal from './RoomDetectionModal';
 import ToolsMenu from './ToolsMenu';
 import Stage1 from './Stage1';
@@ -16,26 +15,108 @@ import { CodeBlockCode } from '@/components/ui/code-block';
 
 // Import chat models for display
 const CHAT_MODELS = [
+  { id: 'openai/gpt-oss-120b', name: 'GPT OSS 120B', provider: 'Groq' },
   { id: 'llama-3.3-70b-versatile', name: 'Llama 3.3 70B', provider: 'Groq' },
   { id: 'moonshotai/kimi-k2-instruct-0905', name: 'Kimi K2', provider: 'Groq' },
   { id: 'openai/gpt-oss-20b', name: 'GPT OSS 20B', provider: 'OpenRouter' },
-  { id: 'openai/gpt-oss-120b', name: 'GPT OSS 120B', provider: 'Groq' },
   { id: 'google/gemma-3-27b-it:free', name: 'Gemma 3 27B', provider: 'OpenRouter' },
 ];
 
-// Memoized Message Component to prevent unnecessary re-renders
-import { memo } from 'react';
+// Format timestamp like WhatsApp (smart date + time)
+const formatTimestamp = (timestamp) => {
+  if (!timestamp) return '';
 
+  const date = new Date(timestamp);
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+  const messageDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+
+  const timeStr = date.toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true
+  });
+
+  // Check if today
+  if (messageDate.getTime() === today.getTime()) {
+    return timeStr;
+  }
+
+  // Check if yesterday
+  if (messageDate.getTime() === yesterday.getTime()) {
+    return `Yesterday, ${timeStr}`;
+  }
+
+  // Check if this year
+  if (date.getFullYear() === now.getFullYear()) {
+    const dateStr = date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric'
+    });
+    return `${dateStr}, ${timeStr}`;
+  }
+
+  // Different year
+  const dateStr = date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric'
+  });
+  return `${dateStr}, ${timeStr}`;
+};
+
+// Copy button component
+const CopyButton = ({ text, className = '' }) => {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
+  };
+
+  return (
+    <button
+      onClick={handleCopy}
+      className={cn(
+        "p-1 rounded-sm hover:bg-foreground/10 transition-colors",
+        className
+      )}
+      title={copied ? "Copied!" : "Copy to clipboard"}
+    >
+      {copied ? (
+        <Check className="w-3.5 h-3.5 text-green-500" />
+      ) : (
+        <Copy className="w-3.5 h-3.5 text-muted-foreground hover:text-foreground" />
+      )}
+    </button>
+  );
+};
+
+// Memoized Message Component to prevent unnecessary re-renders
 const MessageBubble = memo(({ msg, currentMode, theme }) => (
   <div className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
     {msg.role === 'user' ? (
-      <>
-        <div className="max-w-[90%] md:max-w-[85%] bg-primary text-primary-foreground px-3 md:px-5 py-2 md:py-3 border-2 md:border-3 border-foreground brutal-shadow text-sm md:text-[15px] leading-relaxed font-sans">
+      <div className="max-w-[90%] md:max-w-[85%] group">
+        <div className="bg-primary text-primary-foreground px-3 md:px-5 py-2 md:py-3 border-2 md:border-3 border-foreground brutal-shadow text-sm md:text-[15px] leading-relaxed font-sans">
           {msg.content}
         </div>
-      </>
+        {/* User message footer: timestamp + copy */}
+        <div className="flex items-center justify-end gap-2 mt-1 px-1">
+          <CopyButton text={msg.content} className="opacity-0 group-hover:opacity-100" />
+          <span className="text-[10px] md:text-xs text-muted-foreground font-mono">
+            {formatTimestamp(msg.timestamp)}
+          </span>
+        </div>
+      </div>
     ) : (
-      <div className="w-full min-w-0 max-w-[calc(100vw-4rem)] md:max-w-none space-y-4 md:space-y-6 overflow-x-hidden">
+      <div className="w-full min-w-0 max-w-[calc(100vw-4rem)] md:max-w-none space-y-4 md:space-y-6 overflow-x-hidden group">
         {/* Check message mode from metadata */}
         {
           msg.metadata?.mode === 'chat' || msg.metadata?.mode === 'image' || msg.metadata?.mode === 'file' ? (
@@ -77,60 +158,69 @@ const MessageBubble = memo(({ msg, currentMode, theme }) => (
                     )}
                   </div>
                 ) : (
-                  <div className="prose prose-sm max-w-none text-foreground leading-relaxed break-words overflow-hidden">
-                    <ReactMarkdown
-                      remarkPlugins={[remarkGfm]}
-                      components={{
-                        // Use div instead of p to avoid nesting issues with code blocks
-                        p({ children }) {
-                          return <div className="mb-4 leading-loose tracking-wide font-medium text-sm md:text-base break-words">{children}</div>;
-                        },
-                        table({ children }) {
-                          return (
-                            <div className="w-full max-w-full overflow-x-auto my-6 border-2 border-foreground brutal-shadow-sm block">
-                              <table className="w-full text-sm text-left min-w-max">{children}</table>
-                            </div>
-                          );
-                        },
-                        thead({ children }) {
-                          return <thead className="bg-secondary text-xs uppercase font-bold text-foreground border-b-2 border-foreground">{children}</thead>;
-                        },
-                        th({ children }) {
-                          return <th className="px-3 py-2 md:px-4 md:py-3 border-r-2 border-foreground last:border-r-0 whitespace-nowrap">{children}</th>;
-                        },
-                        td({ children }) {
-                          return <td className="px-3 py-2 md:px-4 md:py-3 border-b-2 border-r-2 border-foreground/20 last:border-r-0 max-w-[200px] truncate md:max-w-none md:whitespace-normal">{children}</td>;
-                        },
-                        code({ node, inline, className, children, ...props }) {
-                          const match = /language-(\w+)/.exec(className || '');
-                          const language = match ? match[1] : 'text';
-
-                          if (inline) {
+                  <>
+                    <div className="prose prose-sm max-w-none text-foreground leading-relaxed break-words overflow-hidden">
+                      <ReactMarkdown
+                        remarkPlugins={[remarkGfm]}
+                        components={{
+                          // Use div instead of p to avoid nesting issues with code blocks
+                          p({ children }) {
+                            return <div className="mb-4 leading-loose tracking-wide font-medium text-sm md:text-base break-words">{children}</div>;
+                          },
+                          table({ children }) {
                             return (
-                              <code className={cn("bg-secondary px-1.5 py-0.5 border border-foreground text-xs md:text-sm font-mono text-primary font-bold break-all", className)} {...props}>
-                                {children}
-                              </code>
+                              <div className="w-full max-w-full overflow-x-auto my-6 border-2 border-foreground brutal-shadow-sm block">
+                                <table className="w-full text-sm text-left min-w-max">{children}</table>
+                              </div>
+                            );
+                          },
+                          thead({ children }) {
+                            return <thead className="bg-secondary text-xs uppercase font-bold text-foreground border-b-2 border-foreground">{children}</thead>;
+                          },
+                          th({ children }) {
+                            return <th className="px-3 py-2 md:px-4 md:py-3 border-r-2 border-foreground last:border-r-0 whitespace-nowrap">{children}</th>;
+                          },
+                          td({ children }) {
+                            return <td className="px-3 py-2 md:px-4 md:py-3 border-b-2 border-r-2 border-foreground/20 last:border-r-0 max-w-[200px] truncate md:max-w-none md:whitespace-normal">{children}</td>;
+                          },
+                          code({ node, inline, className, children, ...props }) {
+                            const match = /language-(\w+)/.exec(className || '');
+                            const language = match ? match[1] : 'text';
+
+                            if (inline) {
+                              return (
+                                <code className={cn("bg-secondary px-1.5 py-0.5 border border-foreground text-xs md:text-sm font-mono text-primary font-bold break-all", className)} {...props}>
+                                  {children}
+                                </code>
+                              );
+                            }
+
+                            return (
+                              <div className="not-prose my-6 border-2 border-foreground brutal-shadow-sm bg-card w-full max-w-full overflow-hidden">
+                                <div className="w-full overflow-x-auto">
+                                  <CodeBlockCode
+                                    code={String(children).replace(/\n$/, '')}
+                                    language={language}
+                                    theme={theme === 'dark' ? 'github-dark' : 'github-light'}
+                                    className="whitespace-pre text-xs md:text-sm"
+                                  />
+                                </div>
+                              </div>
                             );
                           }
-
-                          return (
-                            <div className="not-prose my-6 border-2 border-foreground brutal-shadow-sm bg-card w-full max-w-full overflow-hidden">
-                              <div className="w-full overflow-x-auto">
-                                <CodeBlockCode
-                                  code={String(children).replace(/\n$/, '')}
-                                  language={language}
-                                  theme={theme === 'dark' ? 'github-dark' : 'github-light'}
-                                  className="whitespace-pre text-xs md:text-sm"
-                                />
-                              </div>
-                            </div>
-                          );
-                        }
-                      }}
-                    >
-                      {msg.stage3?.response || msg.content || ''}
-                    </ReactMarkdown>
-                  </div>
+                        }}
+                      >
+                        {msg.stage3?.response || msg.content || ''}
+                      </ReactMarkdown>
+                    </div>
+                    {/* Assistant message footer: copy + timestamp */}
+                    <div className="flex items-center gap-2 mt-2 pt-2 border-t border-foreground/10">
+                      <CopyButton text={msg.stage3?.response || msg.content || ''} className="opacity-0 group-hover:opacity-100" />
+                      <span className="text-[10px] md:text-xs text-muted-foreground font-mono">
+                        {formatTimestamp(msg.timestamp)}
+                      </span>
+                    </div>
+                  </>
                 )}
               </div>
             </div>
@@ -168,6 +258,16 @@ const MessageBubble = memo(({ msg, currentMode, theme }) => (
                   isLoading={msg.loading?.stage3}
                 />
               )}
+
+              {/* Council timestamp */}
+              {msg.timestamp && (
+                <div className="flex items-center gap-2 mt-2 pt-2 border-t border-foreground/10">
+                  <CopyButton text={msg.stage3?.response || ''} className="opacity-0 group-hover:opacity-100" />
+                  <span className="text-[10px] md:text-xs text-muted-foreground font-mono">
+                    {formatTimestamp(msg.timestamp)}
+                  </span>
+                </div>
+              )}
             </>
           )
         }
@@ -185,6 +285,7 @@ export default function ChatInterface({
 }) {
   const { theme, toggleTheme } = useTheme();
   const [input, setInput] = useState('');
+  const [isSearchEnabled, setIsSearchEnabled] = useState(false);
   const [detectedRoom, setDetectedRoom] = useState(null);
   const [pendingMessage, setPendingMessage] = useState('');
   const [isToolsMenuOpen, setIsToolsMenuOpen] = useState(false);
@@ -209,7 +310,7 @@ export default function ChatInterface({
 
   const [currentMode, setCurrentMode] = useState('chat'); // Default: 'chat' (was 'council')
   const [currentRoom, setCurrentRoom] = useState('decision');
-  const [currentModel, setCurrentModel] = useState('llama-3.3-70b-versatile'); // Default: Llama 3.3 70B
+  const [currentModel, setCurrentModel] = useState('openai/gpt-oss-120b'); // Default: GPT OSS 120B
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -260,7 +361,8 @@ export default function ChatInterface({
         onSendMessage(content, {
           mode: currentMode,
           room: currentRoom,
-          model: currentModel
+          model: currentModel,
+          forceSearch: isSearchEnabled
         });
         isSubmittingRef.current = false;
       }
@@ -434,6 +536,21 @@ export default function ChatInterface({
                 <Sparkles className="w-5 h-5" />
               </button>
 
+              {/* Search Toggle Button */}
+              <button
+                type="button"
+                onClick={() => setIsSearchEnabled(!isSearchEnabled)}
+                className={cn(
+                  "shrink-0 p-2 h-10 w-10 flex items-center justify-center border-2 border-foreground transition-all duration-200 brutal-shadow-sm hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-none",
+                  isSearchEnabled
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-secondary hover:bg-primary text-foreground hover:text-primary-foreground"
+                )}
+                title={isSearchEnabled ? "Disable Web Search" : "Enable Web Search"}
+              >
+                <Globe className="w-5 h-5" />
+              </button>
+
               {/* Tools Menu Dropdown */}
               {isToolsMenuOpen && (
                 <div className="absolute left-0 bottom-full mb-4 z-20">
@@ -530,6 +647,6 @@ export default function ChatInterface({
           </div>
         </div>
       </div>
-    </div >
+    </div>
   );
 }

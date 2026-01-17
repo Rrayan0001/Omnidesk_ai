@@ -55,6 +55,22 @@ const STATIC_PATTERNS = [
  * @param {string} query - The user's query
  * @returns {boolean} True if search is needed
  */
+// Broad keywords that often benefit from search but aren't strictly "realtime"
+const BROAD_SEARCH_KEYWORDS = [
+    'vs', 'versus', 'compare', 'difference',
+    'review', 'reviews', 'best', 'top', 'rating',
+    'price', 'cost', 'buy', 'cheap', 'expensive',
+    'tutorial', 'guide', 'how to',
+    'example', 'examples',
+    'meaning', 'mean',
+    'release date', 'when is',
+];
+
+/**
+ * Determine if a query requires real-time web search.
+ * @param {string} query - The user's query
+ * @returns {boolean} True if search is needed
+ */
 export function isRealtimeQuery(query) {
     if (!query || typeof query !== 'string') {
         return false;
@@ -62,22 +78,18 @@ export function isRealtimeQuery(query) {
 
     const lowerQuery = query.toLowerCase().trim();
 
-    // First, check if it matches static patterns - these don't need search
-    for (const pattern of STATIC_PATTERNS) {
-        if (pattern.test(lowerQuery)) {
-            // But still check for realtime keywords that might override
-            const hasRealtimeKeyword = REALTIME_KEYWORDS.some(kw =>
-                lowerQuery.includes(kw.toLowerCase())
-            );
-            if (!hasRealtimeKeyword) {
-                return false;
-            }
+    // Check for explicit realtime keywords first (highest priority)
+    for (const keyword of REALTIME_KEYWORDS) {
+        if (lowerQuery.includes(keyword.toLowerCase())) {
+            return true;
         }
     }
 
-    // Check for realtime keywords
-    for (const keyword of REALTIME_KEYWORDS) {
-        if (lowerQuery.includes(keyword.toLowerCase())) {
+    // Check for broad search keywords
+    for (const keyword of BROAD_SEARCH_KEYWORDS) {
+        // Simple distinct word matching to avoid false positives (e.g. "top" in "stop")
+        const regex = new RegExp(`\\b${keyword}\\b`, 'i');
+        if (regex.test(lowerQuery)) {
             return true;
         }
     }
@@ -88,6 +100,15 @@ export function isRealtimeQuery(query) {
     }
 
     if (/what (is|are) (the )?(current|latest|new)/i.test(query)) {
+        return true;
+    }
+
+    // Check for "What is X" or "Who is X" which often benefit from fresh info
+    // but exclude definitions that look like homework/basic facts if possible
+    if (/^(what|who) (is|are|was|were)/i.test(lowerQuery) && lowerQuery.length > 15) {
+        // If it's a specific question, default to search to be safe
+        // heavily dependent on whether we want to risk over-searching
+        // For "Broad" option, we should lean towards true.
         return true;
     }
 
@@ -108,21 +129,6 @@ export function classifyQuery(query) {
 
     const lowerQuery = query.toLowerCase().trim();
 
-    // Check static patterns first
-    for (const pattern of STATIC_PATTERNS) {
-        if (pattern.test(lowerQuery)) {
-            const hasOverride = REALTIME_KEYWORDS.some(kw =>
-                lowerQuery.includes(kw.toLowerCase())
-            );
-            if (!hasOverride) {
-                return {
-                    isRealtime: false,
-                    reason: 'Matches static knowledge pattern'
-                };
-            }
-        }
-    }
-
     // Check realtime keywords
     for (const keyword of REALTIME_KEYWORDS) {
         if (lowerQuery.includes(keyword.toLowerCase())) {
@@ -133,5 +139,23 @@ export function classifyQuery(query) {
         }
     }
 
-    return { isRealtime: false, reason: 'No realtime indicators found' };
+    // Check broad search keywords
+    for (const keyword of BROAD_SEARCH_KEYWORDS) {
+        const regex = new RegExp(`\\b${keyword}\\b`, 'i');
+        if (regex.test(lowerQuery)) {
+            return {
+                isRealtime: true,
+                reason: `Contains broad search keyword: "${keyword}"`
+            };
+        }
+    }
+
+    if (/^(what|who) (is|are|was|were)/i.test(lowerQuery) && lowerQuery.length > 15) {
+        return {
+            isRealtime: true,
+            reason: 'Matches general entity question pattern'
+        };
+    }
+
+    return { isRealtime: false, reason: 'No search indicators found' };
 }
