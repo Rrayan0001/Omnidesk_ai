@@ -1,9 +1,10 @@
-import { Plus, MessageSquare, Trash2, Sun, Moon, X, Cpu, PanelLeft, ChevronRight, LogOut } from 'lucide-react';
+import { Plus, MessageSquare, Trash2, Sun, Moon, X, Cpu, PanelLeft, ChevronRight, LogOut, Activity } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useRoom } from "@/contexts/RoomContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { useSearchUsage } from "@/contexts/SearchUsageContext";
 import { useEffect, useState } from "react";
 import { api } from "@/api";
 import { DeleteConfirmDialog } from "./DeleteConfirmDialog";
@@ -27,6 +28,7 @@ export default function Sidebar({
   const { theme, toggleTheme } = useTheme();
   const { currentRoom, setCurrentRoom, rooms } = useRoom();
   const { signOut } = useAuth();
+  const { usageCount, limit } = useSearchUsage();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteAllDialogOpen, setDeleteAllDialogOpen] = useState(false);
   const [conversationToDelete, setConversationToDelete] = useState(null);
@@ -186,6 +188,40 @@ export default function Sidebar({
               {theme === 'dark' ? <Sun className="w-6 h-6 shrink-0" /> : <Moon className="w-6 h-6 shrink-0" />}
               {(isExpanded || isOpen) && <span className="text-[15px]">{theme === 'dark' ? 'Light' : 'Dark'} Mode</span>}
             </button>
+
+            {/* Search Usage Tracker */}
+            <div className={cn(
+              "px-3 py-2 mb-1 transition-all",
+              (isExpanded || isOpen) ? "w-full" : "w-12 mx-auto flex justify-center px-0"
+            )}>
+              <div className={cn(
+                "flex items-center gap-3 p-2 rounded-lg border-2 transition-all brutal-shadow-sm",
+                usageCount >= limit ? "bg-destructive/10 border-destructive text-destructive" :
+                  usageCount >= limit * 0.8 ? "bg-yellow-500/10 border-yellow-500 text-yellow-600 dark:text-yellow-400" :
+                    "bg-secondary border-foreground/20 text-muted-foreground"
+              )}>
+                <Activity className={cn("w-4 h-4 shrink-0", (isExpanded || isOpen) ? "" : "mx-auto")} />
+                {(isExpanded || isOpen) && (
+                  <div className="flex flex-col min-w-0 flex-1">
+                    <div className="flex justify-between items-center text-xs font-bold uppercase tracking-wider mb-1">
+                      <span>Search Limit</span>
+                      <span>{usageCount}/{limit}</span>
+                    </div>
+                    {/* Progress Bar */}
+                    <div className="w-full h-1.5 bg-background border border-foreground/20 rounded-full overflow-hidden">
+                      <div
+                        className={cn("h-full transition-all duration-500",
+                          usageCount >= limit ? "bg-destructive" :
+                            usageCount >= limit * 0.8 ? "bg-yellow-500" :
+                              "bg-primary"
+                        )}
+                        style={{ width: `${Math.min((usageCount / limit) * 100, 100)}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
 
             {/* Logout Button */}
             <button

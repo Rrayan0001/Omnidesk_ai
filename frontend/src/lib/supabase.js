@@ -8,7 +8,15 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || ''
 let supabase = null
 
 if (supabaseUrl && supabaseAnonKey) {
-    supabase = createClient(supabaseUrl, supabaseAnonKey)
+    supabase = createClient(supabaseUrl, supabaseAnonKey, {
+        auth: {
+            detectSessionInUrl: true,
+            autoRefreshToken: true,
+            persistSession: true,
+            // Using implicit flow for email recovery compatibility
+            flowType: 'implicit'
+        }
+    })
 } else {
     console.error('Missing Supabase environment variables. Auth will not work.')
     // Create a mock client to prevent crashes

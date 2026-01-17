@@ -4,12 +4,14 @@ import ChatInterface from './components/ChatInterface';
 import { api } from './api';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { Auth } from './components/Auth';
+import { SearchUsageProvider, useSearchUsage } from './contexts/SearchUsageContext';
 
 function Dashboard() {
   const [conversations, setConversations] = useState([]);
   const [currentConversationId, setCurrentConversationId] = useState(null);
   const [currentConversation, setCurrentConversation] = useState(null);
   const [loadingStates, setLoadingStates] = useState({});
+  const { incrementUsage } = useSearchUsage();
 
   // Load conversations on mount
   useEffect(() => {
@@ -260,6 +262,8 @@ function Dashboard() {
             }
             return { ...prev, messages };
           });
+          // Increment search usage count
+          incrementUsage();
           break;
 
         case 'chat_start':
@@ -600,13 +604,11 @@ function Dashboard() {
 }
 
 function AppContent() {
-  const { user } = useAuth();
+  const { user, passwordRecoveryMode } = useAuth();
 
-  // Check for password recovery link - this takes precedence over user auth
-  const isPasswordRecovery = window.location.hash.includes('type=recovery');
-
-  // If it's a password recovery flow, always show Auth component regardless of user state
-  if (isPasswordRecovery) {
+  // If it's a password recovery flow (flagged by context), always show Auth component
+  // This prevents redirecting to Dashboard immediately after OTP verification
+  if (passwordRecoveryMode) {
     return <Auth />;
   }
 
@@ -618,7 +620,9 @@ function AppContent() {
 export default function App() {
   return (
     <AuthProvider>
-      <AppContent />
+      <SearchUsageProvider>
+        <AppContent />
+      </SearchUsageProvider>
     </AuthProvider>
   );
 }

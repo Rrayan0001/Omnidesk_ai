@@ -16,14 +16,28 @@ export function AuthProvider({ children }) {
             setPasswordRecoveryMode(true)
         }
 
-        // Check for existing session
-        supabase.auth.getSession().then(({ data: { session } }) => {
-            // Don't auto-login if we're in password recovery mode
-            if (!passwordRecoveryMode) {
+        // If URL has access_token in hash, force Supabase to extract session from URL
+        const initSession = async () => {
+            // Check if there's a hash with tokens
+            if (hash && (hash.includes('access_token') || hash.includes('refresh_token'))) {
+                console.log('Recovery tokens detected in URL, extracting session...')
+                // This forces Supabase to parse the URL and set the session
+                const { data, error } = await supabase.auth.getSession()
+                if (error) {
+                    console.error('Error extracting session from URL:', error)
+                } else if (data?.session) {
+                    console.log('Session extracted successfully:', data.session.user?.email)
+                    setUser(data.session.user)
+                }
+            } else {
+                // Normal session check
+                const { data: { session } } = await supabase.auth.getSession()
                 setUser(session?.user ?? null)
             }
             setLoading(false)
-        })
+        }
+
+        initSession()
 
         // Listen for auth changes
         const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
@@ -34,14 +48,14 @@ export function AuthProvider({ children }) {
                 console.log('Password recovery detected')
                 setPasswordRecoveryMode(true)
                 setLoading(false)
-                return // Don't set user yet - allow reset password flow
+                // Continue to set user session below so updateUser works
             }
 
-            // If we're in password recovery mode, don't auto-login the user
+            // If we're in password recovery mode, we STILL need to set the user session
+            // because supabase.auth.updateUser() requires an active session.
+            // The UI (App.jsx) handles showing the ResetPassword component instead of Dashboard.
             if (passwordRecoveryMode && event === 'SIGNED_IN') {
-                console.log('Blocking auto-login during password recovery')
-                setLoading(false)
-                return
+                console.log('Password recovery session established')
             }
 
             setUser(session?.user ?? null)
@@ -68,20 +82,42 @@ export function AuthProvider({ children }) {
                 console.log("Already signed out or network error");
             }
         },
+        // OTP-based password reset methods
+        sendOtpForPasswordReset: async (email) => {
+            return supabase.auth.signInWithOtp({
+                email,
+                options: {
+                    shouldCreateUser: false // Don't create new user if email doesn't exist
+                }
+            });
+        },
+        verifyOtpForRecovery: async (email, token) => {
+            const result = await supabase.auth.verifyOtp({
+                email,
+                token,
+                type: 'email'
+            });
+            // If verification successful, set password recovery mode
+            if (!result.error && result.data?.session) {
+                setPasswordRecoveryMode(true);
+                setUser(result.data.session.user);
+            }
+            return result;
+        },
+        // Legacy link-based reset (keeping for compatibility)
         resetPasswordForEmail: async (email) => {
             return supabase.auth.resetPasswordForEmail(email, {
-                redirectTo: `${window.location.origin}/#access_token`,
+                redirectTo: `${window.location.origin}/`,
             });
         },
         updatePassword: async (newPassword) => {
             return supabase.auth.updateUser({ password: newPassword });
         },
         user,
-        session: user ? { user } : null, // Compatible structure if needed
+        session: user ? { user } : null,
         passwordRecoveryMode,
         clearPasswordRecoveryMode: () => {
             setPasswordRecoveryMode(false)
-            // Clear the hash from URL
             window.history.replaceState(null, '', window.location.pathname)
         }
     }

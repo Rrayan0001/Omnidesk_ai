@@ -17,7 +17,10 @@ export function Auth() {
     }, [])
 
     if (authView === 'forgot-password') {
-        return <ForgotPassword onBack={() => setAuthView('signin')} />
+        return <ForgotPassword
+            onBack={() => setAuthView('signin')}
+            onVerified={() => setAuthView('reset-password')}
+        />
     }
 
     if (authView === 'reset-password') {

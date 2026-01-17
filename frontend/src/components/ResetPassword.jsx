@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
-import { Lock, Eye, EyeOff, CheckCircle } from 'lucide-react'
+import { Lock, Eye, EyeOff, CheckCircle, Loader2 } from 'lucide-react'
 
 export function ResetPassword({ onSuccess }) {
     const [loading, setLoading] = useState(false)
@@ -10,7 +10,7 @@ export function ResetPassword({ onSuccess }) {
     const [showConfirmPassword, setShowConfirmPassword] = useState(false)
     const [error, setError] = useState('')
     const [success, setSuccess] = useState(false)
-    const { updatePassword, clearPasswordRecoveryMode } = useAuth()
+    const { updatePassword, clearPasswordRecoveryMode, user } = useAuth()
 
     const handleSubmit = async (e) => {
         e.preventDefault()
@@ -82,8 +82,8 @@ export function ResetPassword({ onSuccess }) {
                         />
                     </div>
                     <div>
-                        <h1 className="text-2xl sm:text-3xl font-black tracking-tight font-display uppercase">Reset Password</h1>
-                        <p className="text-muted-foreground font-mono text-xs sm:text-sm mt-1 uppercase tracking-wide">Enter your new password</p>
+                        <h1 className="text-2xl sm:text-3xl font-black tracking-tight font-display uppercase">New Password</h1>
+                        <p className="text-muted-foreground font-mono text-xs sm:text-sm mt-1 uppercase tracking-wide">Create your new password</p>
                     </div>
                 </div>
 
@@ -139,7 +139,7 @@ export function ResetPassword({ onSuccess }) {
                         disabled={loading}
                         className="inline-flex items-center justify-center rounded-none text-xs sm:text-sm font-bold uppercase tracking-wide sm:tracking-widest bg-primary text-primary-foreground hover:bg-primary/90 h-10 sm:h-11 px-4 py-2 w-full border-2 border-foreground brutal-shadow transition-all active:translate-x-[2px] active:translate-y-[2px] active:shadow-none disabled:opacity-50"
                     >
-                        {loading ? <>Updating...</> : <><Lock className="w-4 h-4 mr-2" /> Reset Password</>}
+                        {loading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Updating...</> : <><Lock className="w-4 h-4 mr-2" /> Update Password</>}
                     </button>
                 </form>
             </div>
