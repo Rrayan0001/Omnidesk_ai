@@ -12,6 +12,8 @@ import { runFullCouncil, generateConversationTitle } from './services/council';
 import { streamModel, generateImage } from './services/llmClient';
 import { extractFileContent, analyzeFileContent, analyzeImage } from './services/fileProcessor';
 import { COUNCIL_MODELS, CHAIRMAN_MODEL, CHAT_MODELS, ROOMS, DEFAULT_ROOM } from './services/config';
+import { searchGoogle, formatSearchContext, isSearchConfigured } from './services/searchClient';
+import { isRealtimeQuery } from './services/intentRouter';
 
 /**
  * Get the current user ID from Supabase auth.
@@ -120,26 +122,51 @@ export const api = {
           selectedModel = CHAT_MODELS[0]; // Default to first chat model
         }
 
-        onEvent('chat_start', { model: selectedModel.name });
+        // Check if query needs real-time search
+        let searchContext = null;
+        let searchResults = null;
+
+        if (isSearchConfigured() && isRealtimeQuery(content)) {
+          onEvent('search_start', {});
+          try {
+            searchResults = await searchGoogle(content, 5);
+            if (searchResults && searchResults.length > 0) {
+              searchContext = formatSearchContext(searchResults);
+              onEvent('search_complete', { results: searchResults });
+            }
+          } catch (searchError) {
+            console.warn('Search failed, continuing without search:', searchError);
+          }
+        }
+
+        onEvent('chat_start', { model: selectedModel.name, hasSearch: !!searchContext });
 
         let fullResponse = '';
-        const messages = [{ role: 'user', content }];
+
+        // Build messages with optional search context
+        const userContent = searchContext
+          ? `${searchContext}\nUser Question: ${content}`
+          : content;
+        const messages = [{ role: 'user', content: userContent }];
 
         await streamModel(selectedModel, messages, (chunk) => {
           fullResponse += chunk;
           onEvent('chat_chunk', { chunk });
         });
 
-        // Save the complete message
+        // Save the complete message with search metadata
         await storage.addChatMessage(conversationId, fullResponse, {
           mode: 'chat',
-          model: selectedModel.name
+          model: selectedModel.name,
+          hasSearch: !!searchContext,
+          searchSources: searchResults?.map(r => ({ title: r.title, source: r.source, url: r.url }))
         });
 
         onEvent('chat_complete', {
           data: {
             model: selectedModel.name,
-            response: fullResponse
+            response: fullResponse,
+            searchResults: searchResults
           }
         });
         onEvent('complete', {});

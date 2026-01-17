@@ -231,6 +231,37 @@ function Dashboard() {
           });
           break;
 
+        case 'search_start':
+          console.log('Web search started');
+          setCurrentConversation((prev) => {
+            if (prev?.id !== conversationId) return prev;
+            const messages = [...prev.messages];
+            const lastMsg = messages[messages.length - 1];
+            if (lastMsg && lastMsg.role === 'assistant') {
+              lastMsg.metadata = { ...lastMsg.metadata, isSearching: true };
+            }
+            return { ...prev, messages };
+          });
+          break;
+
+        case 'search_complete':
+          console.log('Web search completed:', event.results?.length, 'results');
+          setCurrentConversation((prev) => {
+            if (prev?.id !== conversationId) return prev;
+            const messages = [...prev.messages];
+            const lastMsg = messages[messages.length - 1];
+            if (lastMsg && lastMsg.role === 'assistant') {
+              lastMsg.metadata = {
+                ...lastMsg.metadata,
+                isSearching: false,
+                hasSearch: true,
+                searchResults: event.results
+              };
+            }
+            return { ...prev, messages };
+          });
+          break;
+
         case 'chat_start':
           console.log('Chat started with model:', event.model);
           setCurrentConversation((prev) => {
@@ -570,6 +601,16 @@ function Dashboard() {
 
 function AppContent() {
   const { user } = useAuth();
+
+  // Check for password recovery link - this takes precedence over user auth
+  const isPasswordRecovery = window.location.hash.includes('type=recovery');
+
+  // If it's a password recovery flow, always show Auth component regardless of user state
+  if (isPasswordRecovery) {
+    return <Auth />;
+  }
+
+  // Normal auth flow
   if (!user) return <Auth />;
   return <Dashboard />;
 }

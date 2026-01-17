@@ -59,8 +59,22 @@ const MessageBubble = memo(({ msg, currentMode, theme }) => (
 
                 {/* Show shimmer if no response content yet */}
                 {!msg.stage3?.response && !msg.content ? (
-                  <div className="mt-2 text-foreground font-mono text-sm">
-                    {currentMode === 'image' ? 'GENERATING IMAGE...' : currentMode === 'file' ? 'ANALYZING FILE...' : 'THINKING...'}
+                  <div className="mt-2 text-foreground font-mono text-sm flex items-center gap-2">
+                    {msg.metadata?.isSearching ? (
+                      <>
+                        <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <circle cx="12" cy="12" r="10" strokeOpacity="0.25" />
+                          <path d="M12 2a10 10 0 0 1 10 10" strokeLinecap="round" />
+                        </svg>
+                        <span className="animate-pulse">SEARCHING WEB...</span>
+                      </>
+                    ) : currentMode === 'image' ? (
+                      'GENERATING IMAGE...'
+                    ) : currentMode === 'file' ? (
+                      'ANALYZING FILE...'
+                    ) : (
+                      'THINKING...'
+                    )}
                   </div>
                 ) : (
                   <div className="prose prose-sm max-w-none text-foreground leading-relaxed break-words overflow-hidden">
@@ -73,8 +87,8 @@ const MessageBubble = memo(({ msg, currentMode, theme }) => (
                         },
                         table({ children }) {
                           return (
-                            <div className="w-full overflow-x-auto my-6 border-2 border-foreground brutal-shadow-sm">
-                              <table className="w-full text-sm text-left min-w-[300px]">{children}</table>
+                            <div className="w-full max-w-full overflow-x-auto my-6 border-2 border-foreground brutal-shadow-sm block">
+                              <table className="w-full text-sm text-left min-w-max">{children}</table>
                             </div>
                           );
                         },
@@ -100,12 +114,13 @@ const MessageBubble = memo(({ msg, currentMode, theme }) => (
                           }
 
                           return (
-                            <div className="not-prose my-6 border-2 border-foreground brutal-shadow-sm bg-card w-full max-w-[85vw] md:max-w-full overflow-hidden">
-                              <div className="overflow-x-auto p-0">
+                            <div className="not-prose my-6 border-2 border-foreground brutal-shadow-sm bg-card w-full max-w-full overflow-hidden">
+                              <div className="w-full">
                                 <CodeBlockCode
                                   code={String(children).replace(/\n$/, '')}
                                   language={language}
                                   theme={theme === 'dark' ? 'github-dark' : 'github-light'}
+                                  className="whitespace-pre-wrap break-words"
                                 />
                               </div>
                             </div>
@@ -334,7 +349,7 @@ export default function ChatInterface({
   };
 
   return (
-    <div className="flex-1 h-screen flex flex-col bg-background relative transition-colors duration-300">
+    <div className="flex-1 h-[100dvh] flex flex-col bg-background relative transition-colors duration-300">
 
 
       {/* Mode Banner */}

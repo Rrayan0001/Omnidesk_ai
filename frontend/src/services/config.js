@@ -7,6 +7,8 @@
 export const OPENROUTER_API_KEY = import.meta.env.VITE_OPENROUTER_API_KEY || '';
 export const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY || '';
 export const GOOGLE_API_KEY = import.meta.env.VITE_GOOGLE_API_KEY || '';
+export const GOOGLE_SEARCH_API_KEY = import.meta.env.VITE_GOOGLE_SEARCH_API_KEY || '';
+export const GOOGLE_SEARCH_CX = import.meta.env.VITE_GOOGLE_SEARCH_CX || '';
 
 // API Endpoints
 export const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';

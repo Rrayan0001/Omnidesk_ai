@@ -54,62 +54,67 @@ export default function Sidebar({
   return (
     <>
       {/* Mobile Overlay */}
-      {isOpen && (
-        <div
-          className="fixed inset-0 bg-black/40 z-40 md:hidden"
-          onClick={toggleSidebar}
-        />
-      )}
+      {/* Mobile Overlay */}
+      <div
+        className={cn(
+          "fixed inset-0 bg-black/40 z-40 md:hidden transition-opacity duration-500 ease-in-out backdrop-blur-sm",
+          isOpen ? "opacity-100 visible" : "opacity-0 invisible"
+        )}
+        onClick={toggleSidebar}
+      />
 
       {/* Sidebar - Expandable */}
       <div
         className={cn(
-          "fixed z-50 h-screen bg-background flex flex-col shrink-0 transition-transform duration-300 ease-in-out border-r-3 border-foreground",
+          "fixed z-50 h-[100dvh] bg-background flex flex-col shrink-0 transition-all duration-500 ease-in-out border-r-3 border-foreground shadow-[4px_0_24px_rgba(0,0,0,0.1)]",
           // Mobile: Fixed width, slide in/out
-          "w-[72vw] max-w-[280px] md:w-auto md:max-w-none",
-          isOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full shadow-none",
+          "w-[75vw] max-w-[300px] md:w-auto md:max-w-none",
+          isOpen ? "translate-x-0" : "-translate-x-full",
           // Desktop: Relative, width changes based on expansion, always visible
           "md:relative md:translate-x-0 md:shadow-none",
-          isExpanded ? "md:w-64" : "md:w-16"
+          isExpanded ? "md:w-64" : "md:w-20"
         )}
         onMouseEnter={() => setIsExpanded(true)}
         onMouseLeave={() => setIsExpanded(false)}
       >
-        <div className="p-2 flex-1 flex flex-col min-h-0">
-          {/* Logo */}
-          <div className={cn(
-            "flex items-center gap-3 hover:bg-primary hover:text-primary-foreground transition-colors mb-2 group",
-            (isExpanded || isOpen) ? "w-full px-3 h-12" : "w-12 h-12 mx-auto justify-center"
-          )}>
-            <img
-              src={theme === 'dark' ? "/logo.png" : "/logo-light.png"}
-              alt="RayanAI"
+        <div className="flex-1 flex flex-col min-h-0">
+          {/* Top Section with Padding */}
+          <div className="p-2 shrink-0">
+            {/* Logo */}
+            <div className={cn(
+              "flex items-center gap-3 hover:bg-primary hover:text-primary-foreground transition-colors mb-2 group",
+              (isExpanded || isOpen) ? "w-full px-3 h-12" : "w-12 h-12 mx-auto justify-center"
+            )}>
+              <img
+                src={theme === 'dark' ? "/logo.png" : "/logo-light.png"}
+                alt="RayanAI"
+                className={cn(
+                  "w-9 h-9 object-contain shrink-0 transition-all",
+                  theme !== 'dark' && "group-hover:brightness-0 group-hover:invert"
+                )}
+              />
+              {(isExpanded || isOpen) && <span className="text-base font-bold tracking-tight uppercase text-glitch brutal-underline">RayanAI</span>}
+            </div>
+
+            {/* New Chat Button */}
+            <Button
+              onClick={onNewConversation}
+              variant="ghost"
               className={cn(
-                "w-9 h-9 object-contain shrink-0 transition-all",
-                theme !== 'dark' && "group-hover:brightness-0 group-hover:invert"
+                "h-12 flex items-center border-2 border-foreground bg-primary text-primary-foreground hover:translate-x-[-2px] hover:translate-y-[-2px] mb-2 brutal-button",
+                (isExpanded || isOpen) ? "w-full justify-start gap-3 px-3" : "w-12 mx-auto p-0 justify-center"
               )}
-            />
-            {(isExpanded || isOpen) && <span className="text-base font-bold tracking-tight uppercase text-glitch brutal-underline">RayanAI</span>}
+              title="New Chat"
+            >
+              <Plus className="w-6 h-6 shrink-0" />
+              {(isExpanded || isOpen) && <span className="text-[15px] font-medium">New Chat</span>}
+            </Button>
           </div>
 
-          {/* New Chat Button */}
-          <Button
-            onClick={onNewConversation}
-            variant="ghost"
-            className={cn(
-              "h-12 flex items-center border-2 border-foreground bg-primary text-primary-foreground hover:translate-x-[-2px] hover:translate-y-[-2px] mb-2 brutal-button",
-              (isExpanded || isOpen) ? "w-full justify-start gap-3 px-3" : "w-12 mx-auto p-0 justify-center"
-            )}
-            title="New Chat"
-          >
-            <Plus className="w-6 h-6 shrink-0" />
-            {(isExpanded || isOpen) && <span className="text-[15px] font-medium">New Chat</span>}
-          </Button>
-
-          {/* Conversations List */}
-          {isExpanded && (
-            <div className="flex-1 overflow-y-auto space-y-1 min-h-0">
-              <div className="flex items-center justify-between px-3 py-2 sticky top-0 bg-secondary/30 backdrop-blur-sm">
+          {/* Conversations List - Full Width */}
+          {(isExpanded || isOpen) && (
+            <div className="flex-1 overflow-y-auto min-h-0 border-t-2 border-foreground/10">
+              <div className="flex items-center justify-between px-4 py-2 sticky top-0 bg-secondary/80 backdrop-blur-sm z-10 border-b-2 border-foreground/10">
                 <h3 className="text-[10px] font-sans font-bold tracking-widest uppercase text-muted-foreground">
                   Recent
                 </h3>
@@ -136,15 +141,15 @@ export default function Sidebar({
                     tabIndex={0}
                     onKeyDown={(e) => e.key === 'Enter' && onSelectConversation(conv.id)}
                     className={cn(
-                      "w-full text-left px-3 py-2 text-sm transition-all group relative hover:bg-accent cursor-pointer border-b-2 border-foreground/20",
+                      "w-full text-left px-4 py-3 text-sm transition-all group relative hover:bg-accent cursor-pointer border-b border-foreground/10",
                       currentConversationId === conv.id
-                        ? "bg-accent text-foreground"
+                        ? "bg-accent text-foreground font-medium"
                         : "text-muted-foreground hover:text-foreground"
                     )}
                   >
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-3">
                       <MessageSquare className="w-3.5 h-3.5 shrink-0" />
-                      <span className="truncate text-xs font-medium">{conv.title || 'New Chat'}</span>
+                      <span className="truncate text-xs">{conv.title || 'New Chat'}</span>
                       {currentConversationId === conv.id && (
                         <button
                           onClick={(e) => {
@@ -164,11 +169,11 @@ export default function Sidebar({
             </div>
           )}
 
-          {/* Spacer */}
-          <div className="flex-1" />
+          {/* Spacer if list is hidden or short */}
+          {!isExpanded && <div className="flex-1" />}
 
           {/* Bottom Actions - Always visible */}
-          <div className="shrink-0 space-y-1 pb-2">
+          <div className="shrink-0 space-y-1 p-2 pb-8 md:pb-2 border-t-2 border-foreground/10 bg-background z-10">
             {/* Theme Toggle */}
             <button
               onClick={toggleTheme}
