@@ -25,7 +25,6 @@ export default function SignupReminderModal({ onSignUp, onDismiss, queryCount })
                         Enjoying RayanAI?
                     </h3>
                     <p className="text-muted-foreground text-sm font-medium">
-                        You've sent <span className="text-primary font-bold">{queryCount} messages</span> in demo mode!
                         Sign up to save your conversations and unlock all features.
                     </p>
                 </div>

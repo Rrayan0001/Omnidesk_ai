@@ -282,7 +282,7 @@ function Dashboard() {
             const messages = [...prev.messages];
             const lastMsg = messages[messages.length - 1];
             if (lastMsg && lastMsg.role === 'assistant') {
-              lastMsg.metadata = { ...lastMsg.metadata, mode: 'chat', model: event.model };
+              lastMsg.metadata = { ...lastMsg.metadata, mode: 'chat', model: event.model, isStreaming: true };
             }
             return { ...prev, messages };
           });
@@ -307,7 +307,7 @@ function Dashboard() {
                 ...lastMsg,
                 stage3: event.data,
                 content: event.data.response,
-                metadata: { mode: 'chat', model: event.data.model },
+                metadata: { mode: 'chat', model: event.data.model, isStreaming: false },
                 loading: null
               };
               console.log('[DEBUG] Last message after update:', JSON.stringify(messages[lastMsgIndex], null, 2));
