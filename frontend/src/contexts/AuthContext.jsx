@@ -74,6 +74,20 @@ export function AuthProvider({ children }) {
         return () => subscription.unsubscribe()
     }, [passwordRecoveryMode])
 
+    // Demo query counter
+    const [demoQueryCount, setDemoQueryCount] = useState(() => {
+        const saved = localStorage.getItem('rayanai_demo_query_count')
+        return saved ? parseInt(saved, 10) : 0
+    })
+
+    // Increment demo query count
+    const incrementDemoQueryCount = () => {
+        const newCount = demoQueryCount + 1
+        setDemoQueryCount(newCount)
+        localStorage.setItem('rayanai_demo_query_count', newCount.toString())
+        return newCount
+    }
+
     // Enter demo mode (no account required)
     const enterDemoMode = () => {
         localStorage.setItem('rayanai_demo_mode', 'true')
@@ -84,7 +98,10 @@ export function AuthProvider({ children }) {
     const exitDemoMode = () => {
         localStorage.removeItem('rayanai_demo_mode')
         localStorage.removeItem('demo_conversations')
+        localStorage.removeItem('rayanai_demo_query_count')
+        localStorage.removeItem('rayanai_demo_conversations')
         setDemoMode(false)
+        setDemoQueryCount(0)
     }
 
     const value = {
@@ -152,6 +169,8 @@ export function AuthProvider({ children }) {
         demoMode,
         enterDemoMode,
         exitDemoMode,
+        demoQueryCount,
+        incrementDemoQueryCount,
         // Helper to check if user is authenticated (either logged in or demo)
         isAuthenticated: !!(user || demoMode)
     }

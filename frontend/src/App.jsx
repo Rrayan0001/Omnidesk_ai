@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Sidebar from './components/Sidebar';
 import ChatInterface from './components/ChatInterface';
+import SignupReminderModal from './components/SignupReminderModal';
 import { api } from './api';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { Auth } from './components/Auth';
@@ -11,7 +12,9 @@ function Dashboard() {
   const [currentConversationId, setCurrentConversationId] = useState(null);
   const [currentConversation, setCurrentConversation] = useState(null);
   const [loadingStates, setLoadingStates] = useState({});
+  const [showSignupReminder, setShowSignupReminder] = useState(false);
   const { incrementGoogleUsage, incrementAlphaVantageUsage, isAlphaVantageLimitReached } = useSearchUsage();
+  const { demoMode, demoQueryCount, incrementDemoQueryCount, exitDemoMode } = useAuth();
 
   // Load conversations on mount
   useEffect(() => {
@@ -387,6 +390,15 @@ function Dashboard() {
   };
 
   const handleSendMessage = async (content, options = {}) => {
+    // Increment demo query count and show reminder after 7 queries
+    if (demoMode) {
+      const newCount = incrementDemoQueryCount();
+      // Show reminder on 7th, 14th, 21st query etc.
+      if (newCount === 7 || (newCount > 7 && newCount % 7 === 0)) {
+        setShowSignupReminder(true);
+      }
+    }
+
     // Auto-create conversation if none exists
     if (!currentConversationId) {
       try {
@@ -607,6 +619,18 @@ function Dashboard() {
         toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
         onDeleteConversation={() => currentConversationId && handleDeleteConversation(currentConversationId)}
       />
+
+      {/* Signup Reminder Modal for demo users */}
+      {showSignupReminder && demoMode && (
+        <SignupReminderModal
+          queryCount={demoQueryCount}
+          onSignUp={() => {
+            exitDemoMode();
+            setShowSignupReminder(false);
+          }}
+          onDismiss={() => setShowSignupReminder(false)}
+        />
+      )}
     </div>
   );
 }
