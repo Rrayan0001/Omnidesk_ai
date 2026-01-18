@@ -8,8 +8,17 @@ export function AuthProvider({ children }) {
     const [user, setUser] = useState(null)
     const [loading, setLoading] = useState(true)
     const [passwordRecoveryMode, setPasswordRecoveryMode] = useState(false)
+    const [demoMode, setDemoMode] = useState(false)
 
     useEffect(() => {
+        // Check if demo mode was previously active
+        const savedDemoMode = localStorage.getItem('rayanai_demo_mode')
+        if (savedDemoMode === 'true') {
+            setDemoMode(true)
+            setLoading(false)
+            return
+        }
+
         // Check URL hash for password recovery on initial load
         const hash = window.location.hash
         if (hash.includes('type=recovery') || hash.includes('type%3Drecovery')) {
@@ -65,12 +74,31 @@ export function AuthProvider({ children }) {
         return () => subscription.unsubscribe()
     }, [passwordRecoveryMode])
 
+    // Enter demo mode (no account required)
+    const enterDemoMode = () => {
+        localStorage.setItem('rayanai_demo_mode', 'true')
+        setDemoMode(true)
+    }
+
+    // Exit demo mode
+    const exitDemoMode = () => {
+        localStorage.removeItem('rayanai_demo_mode')
+        localStorage.removeItem('demo_conversations')
+        setDemoMode(false)
+    }
+
     const value = {
         signUp: (data) => supabase.auth.signUp(data),
         signIn: (data) => supabase.auth.signInWithPassword(data),
         verifyOtp: (data) => supabase.auth.verifyOtp(data),
         signOut: async () => {
             try {
+                // If in demo mode, just exit demo
+                if (demoMode) {
+                    exitDemoMode()
+                    return
+                }
+
                 // Remove local session first to update UI immediately
                 setUser(null);
 
@@ -119,7 +147,13 @@ export function AuthProvider({ children }) {
         clearPasswordRecoveryMode: () => {
             setPasswordRecoveryMode(false)
             window.history.replaceState(null, '', window.location.pathname)
-        }
+        },
+        // Demo mode
+        demoMode,
+        enterDemoMode,
+        exitDemoMode,
+        // Helper to check if user is authenticated (either logged in or demo)
+        isAuthenticated: !!(user || demoMode)
     }
 
     return (

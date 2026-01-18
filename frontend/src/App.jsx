@@ -612,7 +612,7 @@ function Dashboard() {
 }
 
 function AppContent() {
-  const { user, passwordRecoveryMode } = useAuth();
+  const { user, passwordRecoveryMode, demoMode } = useAuth();
 
   // If it's a password recovery flow (flagged by context), always show Auth component
   // This prevents redirecting to Dashboard immediately after OTP verification
@@ -620,9 +620,12 @@ function AppContent() {
     return <Auth />;
   }
 
-  // Normal auth flow
-  if (!user) return <Auth />;
-  return <Dashboard />;
+  // Allow access if user is logged in OR in demo mode
+  if (user || demoMode) {
+    return <Dashboard />;
+  }
+
+  return <Auth />;
 }
 
 export default function App() {

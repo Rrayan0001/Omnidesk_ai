@@ -1,14 +1,14 @@
 
 import React, { useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
-import { LogIn, LayoutDashboard, Sparkles, Eye, EyeOff } from 'lucide-react'
+import { LogIn, LayoutDashboard, Sparkles, Eye, EyeOff, Zap } from 'lucide-react'
 
 export function SignIn({ onSwitch, onForgotPassword }) {
     const [loading, setLoading] = useState(false)
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [showPassword, setShowPassword] = useState(false)
-    const { signIn } = useAuth()
+    const { signIn, enterDemoMode } = useAuth()
     const [error, setError] = useState('')
 
     const handleSignIn = async (e) => {
@@ -25,6 +25,10 @@ export function SignIn({ onSwitch, onForgotPassword }) {
         }
     }
 
+    const handleTryDemo = () => {
+        enterDemoMode()
+    }
+
     return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-background text-foreground animate-in fade-in zoom-in duration-500 px-4 sm:px-6 py-8">
             <div className="w-full max-w-md p-5 sm:p-8 space-y-6 sm:space-y-8 bg-card border-3 border-foreground brutal-shadow">
@@ -39,6 +43,25 @@ export function SignIn({ onSwitch, onForgotPassword }) {
                     <div>
                         <h1 className="text-2xl sm:text-3xl font-black tracking-tight font-display uppercase">Welcome Back</h1>
                         <p className="text-muted-foreground font-mono text-xs sm:text-sm mt-1 uppercase tracking-wide">Sign in to continue to RayanAI</p>
+                    </div>
+                </div>
+
+                {/* Try Demo Button - Prominent placement */}
+                <button
+                    type="button"
+                    onClick={handleTryDemo}
+                    className="w-full inline-flex items-center justify-center rounded-none text-xs sm:text-sm font-bold uppercase tracking-wide sm:tracking-widest bg-gradient-to-r from-cyan-500 to-blue-500 text-white hover:from-cyan-600 hover:to-blue-600 h-11 sm:h-12 px-4 py-2 border-2 border-foreground brutal-shadow transition-all active:translate-x-[2px] active:translate-y-[2px] active:shadow-none group"
+                >
+                    <Zap className="w-4 h-4 mr-2 group-hover:animate-pulse" />
+                    Try Demo – No Account Needed
+                </button>
+
+                <div className="relative flex items-center justify-center">
+                    <div className="absolute inset-0 flex items-center">
+                        <div className="w-full border-t-2 border-foreground/20"></div>
+                    </div>
+                    <div className="relative bg-card px-4 text-xs text-muted-foreground uppercase tracking-wider font-bold">
+                        Or sign in
                     </div>
                 </div>
 

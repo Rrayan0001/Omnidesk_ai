@@ -17,11 +17,83 @@ import { isRealtimeQuery } from './services/intentRouter';
 import { isFinanceConfigured, isFinancialQuery, extractStockSymbol, getStockQuote, getDailyTimeSeries, formatFinanceContext } from './services/financeClient';
 
 /**
- * Get the current user ID from Supabase auth.
+ * Check if demo mode is active.
+ */
+function isDemoMode() {
+  return localStorage.getItem('rayanai_demo_mode') === 'true';
+}
+
+/**
+ * Get the current user ID from Supabase auth (or demo ID).
  */
 async function getUserId() {
+  if (isDemoMode()) {
+    return 'demo-user';
+  }
   const { data: { session } } = await supabase.auth.getSession();
   return session?.user?.id;
+}
+
+// Demo storage helpers
+const DEMO_STORAGE_KEY = 'rayanai_demo_conversations';
+
+function getDemoConversations() {
+  const data = localStorage.getItem(DEMO_STORAGE_KEY);
+  return data ? JSON.parse(data) : [];
+}
+
+function saveDemoConversations(conversations) {
+  localStorage.setItem(DEMO_STORAGE_KEY, JSON.stringify(conversations));
+}
+
+function addDemoUserMessage(conversationId, content) {
+  const conversations = getDemoConversations();
+  const conv = conversations.find(c => c.id === conversationId);
+  if (conv) {
+    conv.messages = conv.messages || [];
+    conv.messages.push({
+      role: 'user',
+      content,
+      created_at: new Date().toISOString()
+    });
+    saveDemoConversations(conversations);
+  }
+}
+
+function addDemoChatMessage(conversationId, content, metadata = {}) {
+  const conversations = getDemoConversations();
+  const conv = conversations.find(c => c.id === conversationId);
+  if (conv) {
+    conv.messages = conv.messages || [];
+    conv.messages.push({
+      role: 'assistant',
+      content,
+      stage3: { model: metadata.model || 'chat', response: content },
+      metadata,
+      created_at: new Date().toISOString()
+    });
+    saveDemoConversations(conversations);
+  }
+}
+
+function updateDemoConversationTitle(conversationId, title) {
+  const conversations = getDemoConversations();
+  const conv = conversations.find(c => c.id === conversationId);
+  if (conv) {
+    conv.title = title;
+    saveDemoConversations(conversations);
+  }
+}
+
+function deleteDemoConversation(conversationId) {
+  const conversations = getDemoConversations();
+  const filtered = conversations.filter(c => c.id !== conversationId);
+  saveDemoConversations(filtered);
+  return true;
+}
+
+function deleteAllDemoConversations() {
+  saveDemoConversations([]);
 }
 
 export const api = {
@@ -29,6 +101,14 @@ export const api = {
    * List all conversations.
    */
   async listConversations() {
+    if (isDemoMode()) {
+      return getDemoConversations().map(c => ({
+        id: c.id,
+        created_at: c.created_at,
+        title: c.title || 'New Chat',
+        message_count: c.messages?.length || 0
+      }));
+    }
     const userId = await getUserId();
     if (!userId) return [];
     return storage.listConversations(userId);
@@ -38,6 +118,20 @@ export const api = {
    * Create a new conversation.
    */
   async createConversation() {
+    if (isDemoMode()) {
+      const conversationId = uuidv4();
+      const newConv = {
+        id: conversationId,
+        title: 'New Chat',
+        created_at: new Date().toISOString(),
+        messages: []
+      };
+      const conversations = getDemoConversations();
+      conversations.unshift(newConv);
+      saveDemoConversations(conversations);
+      return newConv;
+    }
+
     const userId = await getUserId();
     if (!userId) throw new Error('Not authenticated');
 
@@ -49,6 +143,20 @@ export const api = {
    * Get a specific conversation.
    */
   async getConversation(conversationId) {
+    if (isDemoMode()) {
+      const conversations = getDemoConversations();
+      const conv = conversations.find(c => c.id === conversationId);
+      if (conv) {
+        return {
+          ...conv,
+          messages: (conv.messages || []).map(msg => ({
+            ...msg,
+            timestamp: msg.created_at || msg.timestamp
+          }))
+        };
+      }
+      return null;
+    }
     return storage.getConversation(conversationId);
   },
 
@@ -70,7 +178,11 @@ export const api = {
     const room = options.room || DEFAULT_ROOM;
 
     // Add user message to storage
-    await storage.addUserMessage(conversationId, content);
+    if (isDemoMode()) {
+      addDemoUserMessage(conversationId, content);
+    } else {
+      await storage.addUserMessage(conversationId, content);
+    }
 
     try {
       if (mode === 'council') {
@@ -105,7 +217,11 @@ export const api = {
           response: imageMarkdown
         };
 
-        await storage.addChatMessage(conversationId, imageMarkdown, { mode: 'image' });
+        if (isDemoMode()) {
+          addDemoChatMessage(conversationId, imageMarkdown, { mode: 'image' });
+        } else {
+          await storage.addChatMessage(conversationId, imageMarkdown, { mode: 'image' });
+        }
 
         onEvent('image_complete', { data: imageData });
         onEvent('complete', {});
@@ -242,13 +358,19 @@ export const api = {
         });
 
         // Save the complete message with search/finance metadata
-        await storage.addChatMessage(conversationId, fullResponse, {
+        const chatMetadata = {
           mode: 'chat',
           model: selectedModel.name,
           hasSearch: !!combinedContext,
           hasFinanceData: !!financeContext,
           searchSources: searchResults?.map(r => ({ title: r.title, source: r.source, url: r.url }))
-        });
+        };
+
+        if (isDemoMode()) {
+          addDemoChatMessage(conversationId, fullResponse, chatMetadata);
+        } else {
+          await storage.addChatMessage(conversationId, fullResponse, chatMetadata);
+        }
 
         onEvent('chat_complete', {
           data: {
@@ -261,7 +383,14 @@ export const api = {
       }
 
       // Generate title if this is the first message
-      const conv = await storage.getConversation(conversationId);
+      let conv;
+      if (isDemoMode()) {
+        const conversations = getDemoConversations();
+        conv = conversations.find(c => c.id === conversationId);
+      } else {
+        conv = await storage.getConversation(conversationId);
+      }
+
       if (conv && conv.messages.length <= 2 && conv.title === 'New Chat') {
         const userMessages = conv.messages
           .filter(m => m.role === 'user')
@@ -269,7 +398,11 @@ export const api = {
 
         if (userMessages.length > 0) {
           const title = await generateConversationTitle(userMessages);
-          await storage.updateConversationTitle(conversationId, title);
+          if (isDemoMode()) {
+            updateDemoConversationTitle(conversationId, title);
+          } else {
+            await storage.updateConversationTitle(conversationId, title);
+          }
           onEvent('title_complete', { title });
         }
       }
@@ -284,6 +417,10 @@ export const api = {
    * Delete a specific conversation.
    */
   async deleteConversation(conversationId) {
+    if (isDemoMode()) {
+      const success = deleteDemoConversation(conversationId);
+      return { success };
+    }
     const success = await storage.deleteConversation(conversationId);
     return { success };
   },
@@ -292,6 +429,10 @@ export const api = {
    * Delete all conversations.
    */
   async deleteAllConversations() {
+    if (isDemoMode()) {
+      deleteAllDemoConversations();
+      return { success: true };
+    }
     const userId = await getUserId();
     if (!userId) throw new Error('Not authenticated');
     await storage.deleteAllConversations(userId);
