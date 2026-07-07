@@ -6,6 +6,7 @@ import { api } from './api';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { Auth } from './components/Auth';
 import { SearchUsageProvider, useSearchUsage } from './contexts/SearchUsageContext';
+import WelcomeAnimation from './components/WelcomeAnimation';
 
 function Dashboard() {
   const [conversations, setConversations] = useState([]);
@@ -637,6 +638,20 @@ function Dashboard() {
 
 function AppContent() {
   const { user, passwordRecoveryMode, demoMode } = useAuth();
+  const [showWelcome, setShowWelcome] = useState(() => {
+    return !sessionStorage.getItem('rayanai_welcome_shown');
+  });
+
+  if (showWelcome) {
+    return (
+      <WelcomeAnimation 
+        onComplete={() => {
+          sessionStorage.setItem('rayanai_welcome_shown', 'true');
+          setShowWelcome(false);
+        }} 
+      />
+    );
+  }
 
   // If it's a password recovery flow (flagged by context), always show Auth component
   // This prevents redirecting to Dashboard immediately after OTP verification
