@@ -15,28 +15,18 @@ export const ALPHA_VANTAGE_API_KEY = import.meta.env.VITE_ALPHA_VANTAGE_API_KEY 
 export const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
 export const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
-// Council members - Best free models
+// Council members - Groq models
 export const COUNCIL_MODELS = [
+    {
+        id: 'openai/gpt-oss-120b',
+        provider: 'groq',
+        name: 'GPT OSS 120B'
+    },
     {
         id: 'llama-3.3-70b-versatile',
         provider: 'groq',
         name: 'Llama 3.3 70B'
-    },
-    {
-        id: 'moonshotai/kimi-k2-instruct-0905',
-        provider: 'groq',
-        name: 'Kimi K2'
-    },
-    {
-        id: 'openai/gpt-oss-20b',
-        provider: 'openrouter',
-        name: 'GPT OSS 20B'
-    },
-    {
-        id: 'google/gemma-3-27b-it:free',
-        provider: 'openrouter',
-        name: 'Gemma 3 27B'
-    },
+    }
 ];
 
 // Chat Models (for Normal Chat mode)
@@ -50,22 +40,7 @@ export const CHAT_MODELS = [
         id: 'llama-3.3-70b-versatile',
         provider: 'groq',
         name: 'Llama 3.3 70B'
-    },
-    {
-        id: 'moonshotai/kimi-k2-instruct-0905',
-        provider: 'groq',
-        name: 'Kimi K2'
-    },
-    {
-        id: 'openai/gpt-oss-20b',
-        provider: 'openrouter',
-        name: 'GPT OSS 20B'
-    },
-    {
-        id: 'google/gemma-3-27b-it:free',
-        provider: 'openrouter',
-        name: 'Gemma 3 27B'
-    },
+    }
 ];
 
 // Image Generation Model

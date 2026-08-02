@@ -63,9 +63,6 @@ export default function ToolsMenu({
             subItems: [
                 { id: 'openai/gpt-oss-120b', label: 'GPT OSS 120B' },
                 { id: 'llama-3.3-70b-versatile', label: 'Llama 3.3 70B' },
-                { id: 'moonshotai/kimi-k2-instruct-0905', label: 'Kimi K2' },
-                { id: 'openai/gpt-oss-20b', label: 'GPT OSS 20B' },
-                { id: 'google/gemma-3-27b-it:free', label: 'Gemma 3 27B' },
             ]
         },
         {

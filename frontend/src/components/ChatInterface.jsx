@@ -17,9 +17,6 @@ import { CodeBlockCode } from '@/components/ui/code-block';
 const CHAT_MODELS = [
   { id: 'openai/gpt-oss-120b', name: 'GPT OSS 120B', provider: 'Groq' },
   { id: 'llama-3.3-70b-versatile', name: 'Llama 3.3 70B', provider: 'Groq' },
-  { id: 'moonshotai/kimi-k2-instruct-0905', name: 'Kimi K2', provider: 'Groq' },
-  { id: 'openai/gpt-oss-20b', name: 'GPT OSS 20B', provider: 'OpenRouter' },
-  { id: 'google/gemma-3-27b-it:free', name: 'Gemma 3 27B', provider: 'OpenRouter' },
 ];
 
 // Format timestamp like WhatsApp (smart date + time)
