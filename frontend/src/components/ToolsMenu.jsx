@@ -78,7 +78,7 @@ export default function ToolsMenu({
             title: 'Upload File',
             description: 'Analyze PDF, DOCX, PPTX, or images',
             icon: <Upload className="w-5 h-5" />,
-            color: 'text-cyan-500',
+            color: 'text-primary',
             subItems: [] // File picker will be triggered
         }
     ];

@@ -1,14 +1,14 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 
 const ThemeContext = createContext({
-    theme: 'dark',
+    theme: 'light',
     toggleTheme: () => { },
 });
 
 export function ThemeProvider({ children }) {
     const [theme, setTheme] = useState(() => {
-        // Check localStorage or default to dark
-        return localStorage.getItem('theme') || 'dark';
+        // Check localStorage or default to light
+        return localStorage.getItem('theme') || 'light';
     });
 
     useEffect(() => {

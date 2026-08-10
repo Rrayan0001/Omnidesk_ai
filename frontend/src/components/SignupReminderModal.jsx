@@ -14,8 +14,8 @@ export default function SignupReminderModal({ onSignUp, onDismiss, queryCount })
 
                 {/* Icon */}
                 <div className="flex justify-center mb-4">
-                    <div className="w-16 h-16 bg-gradient-to-br from-cyan-500 to-blue-500 border-2 border-foreground brutal-shadow-sm flex items-center justify-center">
-                        <Sparkles className="w-8 h-8 text-white" />
+                    <div className="w-16 h-16 bg-primary text-primary-foreground border-2 border-foreground brutal-shadow-sm flex items-center justify-center">
+                        <Sparkles className="w-8 h-8" />
                     </div>
                 </div>
 

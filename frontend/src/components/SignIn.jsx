@@ -50,7 +50,7 @@ export function SignIn({ onSwitch, onForgotPassword }) {
                 <button
                     type="button"
                     onClick={handleTryDemo}
-                    className="w-full inline-flex items-center justify-center rounded-none text-xs sm:text-sm font-bold uppercase tracking-wide sm:tracking-widest bg-gradient-to-r from-cyan-500 to-blue-500 text-white hover:from-cyan-600 hover:to-blue-600 h-11 sm:h-12 px-4 py-2 border-2 border-foreground brutal-shadow transition-all active:translate-x-[2px] active:translate-y-[2px] active:shadow-none group"
+                    className="w-full inline-flex items-center justify-center rounded-none text-xs sm:text-sm font-bold uppercase tracking-wide sm:tracking-widest bg-primary text-primary-foreground hover:bg-primary/90 h-11 sm:h-12 px-4 py-2 border-2 border-foreground brutal-shadow transition-all active:translate-x-[2px] active:translate-y-[2px] active:shadow-none group"
                 >
                     <Zap className="w-4 h-4 mr-2 group-hover:animate-pulse" />
                     Try Demo – No Account Needed

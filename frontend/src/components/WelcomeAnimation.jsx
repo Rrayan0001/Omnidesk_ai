@@ -73,24 +73,24 @@ export default function WelcomeAnimation({ onComplete }) {
           
           {/* Outer Rotating/Expanding Rings */}
           <svg className="absolute w-52 h-52 -rotate-90 pointer-events-none" viewBox="0 0 100 100">
-            {/* Cyan Solid Ring */}
+            {/* Solid Ring */}
             <motion.circle
               cx="50"
               cy="50"
               r="44"
-              stroke="hsl(189, 94%, 43%)"
+              stroke="#ffffff"
               strokeWidth="1.5"
               fill="transparent"
               initial={{ pathLength: 0, opacity: 0 }}
               animate={{ pathLength: 1, opacity: 0.9 }}
               transition={{ duration: 1.8, ease: [0.77, 0, 0.175, 1], delay: 0.2 }}
             />
-            {/* Outer Dotted Slate Ring */}
+            {/* Outer Dotted Ring */}
             <motion.circle
               cx="50"
               cy="50"
               r="47"
-              stroke="rgba(6, 182, 212, 0.3)"
+              stroke="rgba(255, 255, 255, 0.3)"
               strokeWidth="1"
               fill="transparent"
               strokeDasharray="4 6"
@@ -102,7 +102,7 @@ export default function WelcomeAnimation({ onComplete }) {
 
           {/* Logo Reveal Core */}
           <motion.div
-            className="relative w-36 h-36 p-5 bg-[#0b0f19]/80 backdrop-blur-lg border border-cyan-500/20 rounded-full flex items-center justify-center overflow-hidden"
+            className="relative w-36 h-36 p-5 bg-[#0b0f19]/80 backdrop-blur-lg border border-white/20 rounded-full flex items-center justify-center overflow-hidden"
             initial={{ 
               scale: 0.7, 
               opacity: 0,
@@ -127,7 +127,7 @@ export default function WelcomeAnimation({ onComplete }) {
 
             {/* Sweep glare effect */}
             <motion.div 
-              className="absolute inset-0 bg-gradient-to-r from-transparent via-cyan-400/20 to-transparent -skew-x-12"
+              className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12"
               initial={{ left: "-150%" }}
               animate={{ left: "150%" }}
               transition={{ duration: 1.5, ease: "easeInOut", delay: 1.6 }}
@@ -157,7 +157,7 @@ export default function WelcomeAnimation({ onComplete }) {
 
         {/* Subtitle / Council Monospace text */}
         <motion.p
-          className="text-[10px] sm:text-xs font-mono tracking-[0.25em] sm:tracking-[0.4em] uppercase text-cyan-400 font-bold mt-3 text-center opacity-80"
+          className="text-[10px] sm:text-xs font-mono tracking-[0.25em] sm:tracking-[0.4em] uppercase text-white/80 font-bold mt-3 text-center opacity-80"
           initial={{ opacity: 0, y: 10, letterSpacing: "0.15em" }}
           animate={{ opacity: 1, y: 0, letterSpacing: "0.3em" }}
           transition={{ duration: 1.0, ease: "easeOut", delay: 1.8 }}
@@ -169,7 +169,7 @@ export default function WelcomeAnimation({ onComplete }) {
       
       {/* Skip Button - positioned discretely at the bottom right */}
       <motion.button
-        className="absolute bottom-6 right-8 text-[10px] font-mono tracking-widest text-white/40 hover:text-cyan-400 uppercase bg-transparent border border-white/10 hover:border-cyan-400/40 rounded-none px-3 py-1.5 transition-all select-none cursor-pointer"
+        className="absolute bottom-6 right-8 text-[10px] font-mono tracking-widest text-white/40 hover:text-white uppercase bg-transparent border border-white/10 hover:border-white/40 rounded-none px-3 py-1.5 transition-all select-none cursor-pointer"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 2.2, duration: 0.5 }}

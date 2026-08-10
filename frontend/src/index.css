@@ -34,8 +34,8 @@
 }
 
 :root {
-  /* ─── LIGHT MODE: Pure Paper (BHS Editorial) ─────────────────────────────
-     White paper + absolute black ink + cyan accent for interactive elements  */
+  /* ─── LIGHT MODE: Pure Monochrome Paper (BHS Editorial) ───────────────────
+     White paper + absolute black ink + black borders (100% monochrome)      */
 
   --background: 0 0% 100%;        /* #ffffff — pure paper white               */
   --foreground: 0 0% 4%;          /* #0a0a0a — near-black ink                 */
@@ -46,19 +46,19 @@
   --popover: 0 0% 100%;
   --popover-foreground: 0 0% 4%;
 
-  /* Primary = ink (black in light, white in dark) */
+  /* Primary = black ink in light mode */
   --primary: 0 0% 4%;             /* #0a0a0a                                  */
   --primary-foreground: 0 0% 100%;
 
   /* Secondary = chip surface / subtle fill */
-  --secondary: 0 0% 96%;          /* #f4f4f4 — BHS "chip" colour             */
+  --secondary: 0 0% 96%;          /* #f4f4f4 — BHS "chip" color              */
   --secondary-foreground: 0 0% 4%;
 
-  --muted: 0 0% 96%;              /* same as secondary                        */
-  --muted-foreground: 0 0% 45%;   /* #737373 — BHS muted                     */
+  --muted: 0 0% 96%;
+  --muted-foreground: 0 0% 45%;   /* #737373 — BHS muted                      */
 
-  /* Accent = Cyan — ONLY for interactive/AI elements (buttons, cursors etc.) */
-  --accent: 189 94% 43%;          /* #06b6d4 cyan                             */
+  /* Accent = Monochrome hover/highlight surface */
+  --accent: 0 0% 92%;             /* #eaeaea                                  */
   --accent-foreground: 0 0% 4%;
 
   --destructive: 0 84.2% 60.2%;
@@ -67,47 +67,47 @@
   /* Borders: absolute black for maximum neo-brutalist definition */
   --border: 0 0% 0%;              /* #000000 — pure black border              */
   --input: 0 0% 0%;
-  --ring: 189 94% 43%;            /* cyan ring on focus                       */
+  --ring: 0 0% 4%;                /* black focus ring                         */
 
   /* Neo-Brutalism */
   --radius: 0px;
   --items-shadow: 4px 4px 0px 0px #000000;
 
-  /* Chart colors */
+  /* Chart colors (Monochrome gradient) */
   --chart-1: 0 0% 4%;             /* black                                    */
-  --chart-2: 189 94% 43%;         /* cyan                                     */
-  --chart-3: 189 94% 60%;         /* lighter cyan                             */
-  --chart-4: 0 0% 30%;            /* dark grey                                */
-  --chart-5: 0 0% 60%;            /* mid grey                                 */
+  --chart-2: 0 0% 30%;            /* dark grey                                */
+  --chart-3: 0 0% 50%;            /* mid grey                                 */
+  --chart-4: 0 0% 70%;            /* light grey                               */
+  --chart-5: 0 0% 90%;            /* subtle grey                              */
 }
 
 .dark {
-  /* ─── DARK MODE: True Black (BHS Editorial Dark) ────────────────────────
-     Near-black canvas + absolute white borders + cyan accent for CTAs       */
+  /* ─── DARK MODE: Pure Monochrome Dark (BHS Editorial Dark) ───────────────
+     Near-black canvas + absolute white borders + white primary (100% mono)  */
 
   --background: 0 0% 4%;          /* #0a0a0a — true black                     */
   --foreground: 0 0% 98%;         /* #fafafa — near-white                     */
 
-  --card: 0 0% 7%;                /* #111111 — BHS dark card                 */
+  --card: 0 0% 7%;                /* #111111 — BHS dark card                  */
   --card-foreground: 0 0% 98%;
 
   --popover: 0 0% 7%;
   --popover-foreground: 0 0% 98%;
 
   /* Primary = white ink in dark mode */
-  --primary: 189 94% 43%;         /* cyan — the ONE active accent             */
-  --primary-foreground: 0 0% 4%;
+  --primary: 0 0% 98%;            /* #fafafa — pure white                     */
+  --primary-foreground: 0 0% 4%;  /* black text on white primary              */
 
   /* Secondary = elevated surface (#171717) */
-  --secondary: 0 0% 9%;           /* #171717 — BHS dark chip                 */
+  --secondary: 0 0% 9%;           /* #171717 — BHS dark chip                  */
   --secondary-foreground: 0 0% 98%;
 
   --muted: 0 0% 9%;
-  --muted-foreground: 0 0% 54%;   /* #8a8a8a — BHS dark muted               */
+  --muted-foreground: 0 0% 54%;   /* #8a8a8a — BHS dark muted                 */
 
-  /* Accent = Cyan — unchanged */
-  --accent: 189 94% 43%;
-  --accent-foreground: 0 0% 4%;
+  /* Accent = Monochrome dark fill / hover */
+  --accent: 0 0% 15%;            /* #262626                                  */
+  --accent-foreground: 0 0% 98%;
 
   --destructive: 0 62.8% 50%;
   --destructive-foreground: 0 0% 98%;
@@ -115,7 +115,7 @@
   /* Borders: absolute white in dark mode for maximum contrast */
   --border: 0 0% 100%;            /* #ffffff — pure white border              */
   --input: 0 0% 100%;
-  --ring: 189 94% 43%;
+  --ring: 0 0% 98%;
 
   --items-shadow: 4px 4px 0px 0px #ffffff;
 }
