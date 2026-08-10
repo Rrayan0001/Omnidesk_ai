@@ -707,6 +707,8 @@ export default function App() {
   return (
     <AuthProvider>
       <SearchUsageProvider>
+        {/* Grain texture overlay — BHS-style premium feel */}
+        <div className="grain-layer" aria-hidden="true" />
         <AppContent />
       </SearchUsageProvider>
     </AuthProvider>

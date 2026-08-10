@@ -34,101 +34,90 @@
 }
 
 :root {
-  /* DUAL TONE THEME: Slate (Primary) + Cyan (Secondary/Accent) */
-  /* Base - Light Mode */
-  --background: 210 40% 98%;
-  /* Soft cool grey/white */
-  --foreground: 222 47% 11%;
-  /* Deep Slate */
+  /* ─── LIGHT MODE: Pure Paper (BHS Editorial) ─────────────────────────────
+     White paper + absolute black ink + cyan accent for interactive elements  */
 
-  --card: 0 0% 100%;
-  --card-foreground: 222 47% 11%;
+  --background: 0 0% 100%;        /* #ffffff — pure paper white               */
+  --foreground: 0 0% 4%;          /* #0a0a0a — near-black ink                 */
+
+  --card: 0 0% 100%;              /* white card surface                       */
+  --card-foreground: 0 0% 4%;
 
   --popover: 0 0% 100%;
-  --popover-foreground: 222 47% 11%;
+  --popover-foreground: 0 0% 4%;
 
-  /* Primary: Deep Slate Navy */
-  --primary: 222 47% 11%;
-  --primary-foreground: 210 40% 98%;
+  /* Primary = ink (black in light, white in dark) */
+  --primary: 0 0% 4%;             /* #0a0a0a                                  */
+  --primary-foreground: 0 0% 100%;
 
-  /* Secondary: Bright Cyan */
-  --secondary: 189 94% 43%;
-  --secondary-foreground: 222 47% 11%;
+  /* Secondary = chip surface / subtle fill */
+  --secondary: 0 0% 96%;          /* #f4f4f4 — BHS "chip" colour             */
+  --secondary-foreground: 0 0% 4%;
 
-  --muted: 210 40% 96.1%;
-  --muted-foreground: 215.4 16.3% 46.9%;
+  --muted: 0 0% 96%;              /* same as secondary                        */
+  --muted-foreground: 0 0% 45%;   /* #737373 — BHS muted                     */
 
-  --accent: 189 94% 43%;
-  /* Cyan for hover/accents */
-  --accent-foreground: 222 47% 11%;
+  /* Accent = Cyan — ONLY for interactive/AI elements (buttons, cursors etc.) */
+  --accent: 189 94% 43%;          /* #06b6d4 cyan                             */
+  --accent-foreground: 0 0% 4%;
 
   --destructive: 0 84.2% 60.2%;
-  --destructive-foreground: 210 40% 98%;
+  --destructive-foreground: 0 0% 100%;
 
-  /* Borders: Sharp & Dark for Neo-Brutalist Definition */
-  --border: 222 47% 11%;
-  /* Matching Primary for strong borders */
-  --input: 222 47% 11%;
-  --ring: 222 47% 11%;
+  /* Borders: absolute black for maximum neo-brutalist definition */
+  --border: 0 0% 0%;              /* #000000 — pure black border              */
+  --input: 0 0% 0%;
+  --ring: 189 94% 43%;            /* cyan ring on focus                       */
 
-  /* Neo-Brutalism Specs */
+  /* Neo-Brutalism */
   --radius: 0px;
-  /* SHARP CORNERS */
-  --items-shadow: 4px 4px 0px 0px hsl(222 47% 11%);
-  /* Hard Shadow */
+  --items-shadow: 4px 4px 0px 0px #000000;
 
-  /* Chart Colors (Dual Tone adaptation) */
-  --chart-1: 222 47% 11%;
-  /* Slate */
-  --chart-2: 189 94% 43%;
-  /* Cyan */
-  --chart-3: 199 89% 48%;
-  /* Lighter Blue */
-  --chart-4: 222 47% 20%;
-  /* Light Slate */
-  --chart-5: 189 94% 30%;
-  /* Dark Cyan */
+  /* Chart colors */
+  --chart-1: 0 0% 4%;             /* black                                    */
+  --chart-2: 189 94% 43%;         /* cyan                                     */
+  --chart-3: 189 94% 60%;         /* lighter cyan                             */
+  --chart-4: 0 0% 30%;            /* dark grey                                */
+  --chart-5: 0 0% 60%;            /* mid grey                                 */
 }
 
 .dark {
-  /* Base - Dark Mode */
-  --background: 222 47% 5%;
-  /* Very dark slate */
-  --foreground: 210 40% 98%;
+  /* ─── DARK MODE: True Black (BHS Editorial Dark) ────────────────────────
+     Near-black canvas + absolute white borders + cyan accent for CTAs       */
 
-  --card: 222 47% 8%;
-  --card-foreground: 210 40% 98%;
+  --background: 0 0% 4%;          /* #0a0a0a — true black                     */
+  --foreground: 0 0% 98%;         /* #fafafa — near-white                     */
 
-  --popover: 222 47% 8%;
-  --popover-foreground: 210 40% 98%;
+  --card: 0 0% 7%;                /* #111111 — BHS dark card                 */
+  --card-foreground: 0 0% 98%;
 
-  /* Primary: White/Cyan for contrast in Dark Mode? 
-     Actually, let's keep the Dual Tone Identity. 
-     Primary text is usually white in dark mode. */
-  --primary: 189 94% 43%;
-  /* Cyan becomes primary in dark mode for visibility */
-  --primary-foreground: 222 47% 11%;
-  /* Slate text on Cyan */
+  --popover: 0 0% 7%;
+  --popover-foreground: 0 0% 98%;
 
-  /* Secondary: Slate Lighter */
-  --secondary: 217.2 32.6% 17.5%;
-  --secondary-foreground: 210 40% 98%;
+  /* Primary = white ink in dark mode */
+  --primary: 189 94% 43%;         /* cyan — the ONE active accent             */
+  --primary-foreground: 0 0% 4%;
 
-  --muted: 217.2 32.6% 17.5%;
-  --muted-foreground: 215 20.2% 65.1%;
+  /* Secondary = elevated surface (#171717) */
+  --secondary: 0 0% 9%;           /* #171717 — BHS dark chip                 */
+  --secondary-foreground: 0 0% 98%;
 
-  --accent: 217.2 32.6% 17.5%;
-  --accent-foreground: 210 40% 98%;
+  --muted: 0 0% 9%;
+  --muted-foreground: 0 0% 54%;   /* #8a8a8a — BHS dark muted               */
 
-  --destructive: 0 62.8% 30.6%;
-  --destructive-foreground: 210 40% 98%;
+  /* Accent = Cyan — unchanged */
+  --accent: 189 94% 43%;
+  --accent-foreground: 0 0% 4%;
 
-  --border: 217.2 32.6% 17.5%;
-  --input: 217.2 32.6% 17.5%;
-  --ring: 212.7 26.8% 83.9%;
+  --destructive: 0 62.8% 50%;
+  --destructive-foreground: 0 0% 98%;
 
-  --items-shadow: 4px 4px 0px 0px hsl(0 0% 0%);
-  /* Black shadow for dark mode */
+  /* Borders: absolute white in dark mode for maximum contrast */
+  --border: 0 0% 100%;            /* #ffffff — pure white border              */
+  --input: 0 0% 100%;
+  --ring: 189 94% 43%;
+
+  --items-shadow: 4px 4px 0px 0px #ffffff;
 }
 
 @layer base {
@@ -306,10 +295,10 @@
   font-size: 0.875rem;
 }
 
-/* Custom Scrollbar */
+/* Custom Scrollbar — monochrome editorial */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 
 ::-webkit-scrollbar-track {
@@ -317,13 +306,12 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: hsl(var(--muted-foreground) / 0.2);
-  border-radius: 9999px;
-  transition: background 0.2s;
+  background: hsl(var(--foreground) / 0.15);
+  border-radius: 0px; /* keep boxy */
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: hsl(var(--muted-foreground) / 0.4);
+  background: hsl(var(--foreground) / 0.35);
 }
 
 /* Animations */
@@ -436,4 +424,20 @@
   white-space: normal !important;
   word-break: break-word;
   overflow-wrap: anywhere;
+}
+
+/* ─── Grain Overlay (BHS-style premium texture) ──────────────────────────── */
+.grain-layer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.030;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+}
+
+.dark .grain-layer {
+  opacity: 0.055;
+  mix-blend-mode: screen;
 }
