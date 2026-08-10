@@ -70,7 +70,7 @@ export default function Stage3({ finalResponse, isLoading }) {
             </div>
           </div>
 
-          <div className="markdown-content text-[15px] leading-relaxed text-foreground font-sans break-words overflow-wrap-anywhere overflow-x-hidden" style={{ wordWrap: 'break-word', overflowWrap: 'anywhere', maxWidth: '100%' }}>
+          <div className="markdown-content text-[15px] leading-relaxed text-foreground font-sans break-words overflow-wrap-anywhere overflow-x-hidden text-justify" style={{ wordWrap: 'break-word', overflowWrap: 'anywhere', maxWidth: '100%' }}>
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
               components={{

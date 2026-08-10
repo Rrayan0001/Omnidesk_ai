@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { motion, stagger, useAnimate } from "framer-motion";
 import { cn } from "@/lib/utils";
 
@@ -10,33 +10,41 @@ export const TextGenerateEffect = ({
   textClassName = "dark:text-white text-black",
 }) => {
   const [scope, animate] = useAnimate();
+  const animatedCountRef = useRef(0);
   const wordsArray = typeof words === "string" ? words.split(" ") : [];
 
   useEffect(() => {
     if (!words || !scope.current) return;
-    animate(
-      "span",
-      {
-        opacity: 1,
-        filter: filter ? "blur(0px)" : "none",
-      },
-      {
-        duration: duration ? duration : 1,
-        delay: stagger(0.12),
-      }
-    );
+
+    const spans = scope.current.querySelectorAll("span");
+    const newSpans = Array.from(spans).slice(animatedCountRef.current);
+
+    if (newSpans.length > 0) {
+      animate(
+        newSpans,
+        {
+          opacity: 1,
+          filter: filter ? "blur(0px)" : "none",
+        },
+        {
+          duration: duration ? duration : 0.4,
+          delay: stagger(0.06),
+        }
+      );
+      animatedCountRef.current = spans.length;
+    }
   }, [words, scope, animate, filter, duration]);
 
   const renderWords = () => {
     return (
-      <motion.div ref={scope} className="inline">
+      <motion.div ref={scope} className="inline text-justify">
         {wordsArray.map((word, idx) => {
           return (
             <motion.span
               key={word + idx}
               className={cn("opacity-0 inline-block mr-[0.25em]", textClassName)}
               style={{
-                filter: filter ? "blur(10px)" : "none",
+                filter: filter ? "blur(8px)" : "none",
               }}
             >
               {word}
@@ -48,9 +56,9 @@ export const TextGenerateEffect = ({
   };
 
   return (
-    <div className={cn("font-bold", className)}>
+    <div className={cn("font-bold text-justify", className)}>
       <div className="mt-2">
-        <div className="leading-snug tracking-wide">
+        <div className="leading-snug tracking-wide text-justify">
           {renderWords()}
         </div>
       </div>

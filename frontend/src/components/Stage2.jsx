@@ -130,9 +130,15 @@ export default function Stage2({ rankings, labelToModel, aggregateRankings, isLo
           </div>
 
           <div className="bg-card min-h-[150px]">
-            <div className="markdown-content text-[15px] leading-relaxed text-foreground font-serif break-words overflow-wrap-anywhere overflow-x-hidden" style={{ wordWrap: 'break-word', overflowWrap: 'anywhere', maxWidth: '100%' }}>
+            <div className="markdown-content text-[15px] leading-relaxed text-foreground font-serif break-words overflow-wrap-anywhere overflow-x-hidden text-justify" style={{ wordWrap: 'break-word', overflowWrap: 'anywhere', maxWidth: '100%' }}>
               <ReactMarkdown
                 components={{
+                  p({ children }) {
+                    return <div className="mb-4 leading-loose tracking-wide text-justify">{children}</div>;
+                  },
+                  li({ children }) {
+                    return <li className="pl-1 font-medium text-justify mb-1">{children}</li>;
+                  },
                   code({ node, inline, className, children, ...props }) {
                     const match = /language-(\w+)/.exec(className || '');
                     const language = match ? match[1] : 'text';

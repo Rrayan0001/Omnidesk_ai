@@ -398,3 +398,16 @@
     backdrop-filter: blur(12px);
   }
 }
+
+/* Justified Text Alignment for AI Text Generation */
+.text-justify {
+  text-align: justify !important;
+  text-justify: inter-word;
+}
+
+.markdown-content p,
+.markdown-content li,
+.markdown-content blockquote {
+  text-align: justify;
+  text-justify: inter-word;
+}

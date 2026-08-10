@@ -159,20 +159,23 @@ const MessageBubble = memo(({ msg, currentMode, theme }) => (
                   <>
                     {/* Show raw text with cursor during streaming, markdown after */}
                     {msg.metadata?.isStreaming ? (
-                      <div className="prose prose-sm max-w-none text-foreground leading-relaxed break-words overflow-hidden">
-                        <div className="mb-4 leading-loose tracking-wide font-medium text-sm md:text-base break-words whitespace-pre-wrap">
+                      <div className="prose prose-sm max-w-none text-foreground leading-relaxed break-words overflow-hidden text-justify">
+                        <div className="mb-4 leading-loose tracking-wide font-medium text-sm md:text-base break-words whitespace-pre-wrap text-justify">
                           {msg.stage3?.response || msg.content || ''}
                           <span className="inline-block w-2 h-5 bg-primary ml-0.5 animate-pulse" />
                         </div>
                       </div>
                     ) : (
-                      <div className="prose prose-sm max-w-none text-foreground leading-relaxed break-words overflow-hidden">
+                      <div className="prose prose-sm max-w-none text-foreground leading-relaxed break-words overflow-hidden text-justify markdown-content">
                         <ReactMarkdown
                           remarkPlugins={[remarkGfm]}
                           components={{
                             // Use div instead of p to avoid nesting issues with code blocks
                             p({ children }) {
-                              return <div className="mb-4 leading-loose tracking-wide font-medium text-sm md:text-base break-words">{children}</div>;
+                              return <div className="mb-4 leading-loose tracking-wide font-medium text-sm md:text-base break-words text-justify">{children}</div>;
+                            },
+                            li({ children }) {
+                              return <li className="pl-1 font-medium text-justify mb-1">{children}</li>;
                             },
                             table({ children }) {
                               return (
