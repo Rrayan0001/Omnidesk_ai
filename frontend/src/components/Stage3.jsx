@@ -72,7 +72,7 @@ export default function Stage3({ finalResponse, isLoading, isNew = false }) {
           <AnimatedMarkdown
             content={responseText}
             animate={isNew}
-            wordDelay={16}
+            maxDuration={400}
             components={{
               code({ node, inline, className, children, ...props }) {
                 const match = /language-(\w+)/.exec(className || '');

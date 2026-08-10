@@ -5,62 +5,65 @@ import { cn } from "@/lib/utils";
 
 /**
  * AnimatedMarkdown — renders markdown text with a smooth word-by-word
- * reveal animation (fade-in + subtle upward slide). Each word appears
- * sequentially, giving the feel of a live AI typing experience even when
- * the full response has already arrived.
+ * reveal animation. Each word appears sequentially, giving the feel of a live AI typing experience.
  *
  * Props:
  *  - content (string): The full markdown text to animate.
  *  - animate (bool):   true  → play the word-reveal animation (new messages).
- *                      false → show content instantly (history / page refresh).
- *  - wordDelay (ms): Delay between each word appearing. Default: 18ms.
+ *                      false → show content instantly (history / page refresh / streamed).
+ *  - maxDuration (ms): Maximum total animation duration for the entire text. Default: 400ms.
  *  - components (object): Optional extra ReactMarkdown component overrides.
  *  - className (string): Wrapper class.
  *  - onComplete (fn): Called when animation finishes.
  */
 const AnimatedMarkdown = memo(({
   content = "",
-  animate = true,       // NEW: false = instant render (history messages)
-  wordDelay = 18,
+  animate = true,       // false = instant render (history / live-streamed)
+  maxDuration = 400,   // Cap total animation time at 400ms max
   components = {},
   className = "",
   onComplete,
 }) => {
   const words = content.split(/(\s+)/); // split preserving whitespace tokens
+  const totalTokens = words.length;
+
   // If animate=false, start fully visible; otherwise start hidden
-  const [visibleCount, setVisibleCount] = useState(() => animate ? 0 : words.length);
+  const [visibleCount, setVisibleCount] = useState(() => animate ? 0 : totalTokens);
   const intervalRef = useRef(null);
   const prevContentRef = useRef("");
 
   useEffect(() => {
     if (!content) return;
 
-    // If not animating, always show everything immediately
+    // If not animating, show everything immediately
     if (!animate) {
-      setVisibleCount(words.length);
+      setVisibleCount(totalTokens);
       prevContentRef.current = content;
       return;
     }
 
-    // If content changed (new message), reset and re-animate
+    // If content changed, calculate dynamic steps to finish within maxDuration
     if (content !== prevContentRef.current) {
       prevContentRef.current = content;
-      setVisibleCount(0);
 
       if (intervalRef.current) clearInterval(intervalRef.current);
 
-      let count = 0;
-      const total = words.length;
+      // Target ~30 ticks max over maxDuration (e.g. 400ms), i.e. ~13ms per tick
+      const targetTicks = Math.min(30, Math.max(8, totalTokens));
+      const stepSize = Math.max(1, Math.ceil(totalTokens / targetTicks));
+      const intervalMs = Math.max(10, Math.floor(maxDuration / targetTicks));
 
+      let count = 0;
       intervalRef.current = setInterval(() => {
-        count += 1;
-        setVisibleCount(count);
-        if (count >= total) {
+        count += stepSize;
+        if (count >= totalTokens) {
+          count = totalTokens;
           clearInterval(intervalRef.current);
           intervalRef.current = null;
           if (onComplete) onComplete();
         }
-      }, wordDelay);
+        setVisibleCount(count);
+      }, intervalMs);
     }
 
     return () => {
@@ -69,9 +72,8 @@ const AnimatedMarkdown = memo(({
         intervalRef.current = null;
       }
     };
-    // Only re-run when content or animate flag changes
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [content, animate]);
+  }, [content, animate, maxDuration]);
 
   // The visible portion of the text, rebuilt from word tokens
   const visibleText = words.slice(0, visibleCount).join("");

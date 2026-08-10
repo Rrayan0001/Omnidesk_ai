@@ -167,11 +167,11 @@ const MessageBubble = memo(({ msg, currentMode, theme }) => (
                         </div>
                       </div>
                     ) : (
-                      /* Completed response: word-reveal only for fresh messages */
+                      /* Completed response: fast word-reveal for fresh non-streamed messages (max 400ms total) */
                       <AnimatedMarkdown
                         content={msg.stage3?.response || msg.content || ''}
-                        animate={!!msg._isNew}
-                        wordDelay={18}
+                        animate={!!msg._isNew && !msg.metadata?.wasStreamed}
+                        maxDuration={400}
                         components={{
                           code({ node, inline, className, children, ...props }) {
                             const match = /language-(\w+)/.exec(className || '');
