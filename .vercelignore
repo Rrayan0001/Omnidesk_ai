@@ -1,0 +1,6 @@
+# Ignore heavy assets and documentation not needed for frontend build
+assets/
+omni_desk_images/
+docs/
+.DS_Store
+*.md
