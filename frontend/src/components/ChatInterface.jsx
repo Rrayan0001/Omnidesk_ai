@@ -167,9 +167,10 @@ const MessageBubble = memo(({ msg, currentMode, theme }) => (
                         </div>
                       </div>
                     ) : (
-                      /* Completed response: elegant word-by-word animated reveal */
+                      /* Completed response: word-reveal only for fresh messages */
                       <AnimatedMarkdown
                         content={msg.stage3?.response || msg.content || ''}
+                        animate={!!msg._isNew}
                         wordDelay={18}
                         components={{
                           code({ node, inline, className, children, ...props }) {
@@ -257,6 +258,7 @@ const MessageBubble = memo(({ msg, currentMode, theme }) => (
                 <Stage3
                   finalResponse={msg.stage3}
                   isLoading={msg.loading?.stage3}
+                  isNew={!!msg._isNew}
                 />
               )}
 

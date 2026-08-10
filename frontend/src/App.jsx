@@ -230,7 +230,8 @@ function Dashboard() {
               messages[lastMsgIndex] = {
                 ...lastMsg,
                 stage3: event.data,
-                loading: null
+                loading: null,
+                _isNew: true,  // ← council mode: mark fresh for animation
               };
             }
             return { ...prev, messages };
@@ -309,7 +310,8 @@ function Dashboard() {
                 stage3: event.data,
                 content: event.data.response,
                 metadata: { mode: 'chat', model: event.data.model, isStreaming: false },
-                loading: null
+                loading: null,
+                _isNew: true,  // ← triggers word-reveal animation once, never on reload
               };
               console.log('[DEBUG] Last message after update:', JSON.stringify(messages[lastMsgIndex], null, 2));
             } else {
@@ -507,6 +509,7 @@ function Dashboard() {
           },
           metadata: { mode: 'file', model: analysisResult.model || 'GPT OSS 120B' },
           loading: null,
+          _isNew: true,  // ← file analysis: mark fresh for animation
         };
 
         setCurrentConversation((prev) => ({

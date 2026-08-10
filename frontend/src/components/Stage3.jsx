@@ -5,7 +5,7 @@ import AnimatedMarkdown from '@/components/ui/animated-markdown';
 import { CodeBlockCode } from '@/components/ui/code-block';
 import { useTheme } from "@/contexts/ThemeContext";
 
-export default function Stage3({ finalResponse, isLoading }) {
+export default function Stage3({ finalResponse, isLoading, isNew = false }) {
   const { theme } = useTheme();
   // DEBUG: Check what we're receiving
   console.log('Stage3 received finalResponse:', finalResponse, 'type:', typeof finalResponse);
@@ -71,6 +71,7 @@ export default function Stage3({ finalResponse, isLoading }) {
 
           <AnimatedMarkdown
             content={responseText}
+            animate={isNew}
             wordDelay={16}
             components={{
               code({ node, inline, className, children, ...props }) {

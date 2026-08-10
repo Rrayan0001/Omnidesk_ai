@@ -11,6 +11,8 @@ import { cn } from "@/lib/utils";
  *
  * Props:
  *  - content (string): The full markdown text to animate.
+ *  - animate (bool):   true  → play the word-reveal animation (new messages).
+ *                      false → show content instantly (history / page refresh).
  *  - wordDelay (ms): Delay between each word appearing. Default: 18ms.
  *  - components (object): Optional extra ReactMarkdown component overrides.
  *  - className (string): Wrapper class.
@@ -18,18 +20,27 @@ import { cn } from "@/lib/utils";
  */
 const AnimatedMarkdown = memo(({
   content = "",
+  animate = true,       // NEW: false = instant render (history messages)
   wordDelay = 18,
   components = {},
   className = "",
   onComplete,
 }) => {
   const words = content.split(/(\s+)/); // split preserving whitespace tokens
-  const [visibleCount, setVisibleCount] = useState(0);
+  // If animate=false, start fully visible; otherwise start hidden
+  const [visibleCount, setVisibleCount] = useState(() => animate ? 0 : words.length);
   const intervalRef = useRef(null);
   const prevContentRef = useRef("");
 
   useEffect(() => {
     if (!content) return;
+
+    // If not animating, always show everything immediately
+    if (!animate) {
+      setVisibleCount(words.length);
+      prevContentRef.current = content;
+      return;
+    }
 
     // If content changed (new message), reset and re-animate
     if (content !== prevContentRef.current) {
@@ -58,9 +69,9 @@ const AnimatedMarkdown = memo(({
         intervalRef.current = null;
       }
     };
-    // Only re-run when content changes
+    // Only re-run when content or animate flag changes
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [content]);
+  }, [content, animate]);
 
   // The visible portion of the text, rebuilt from word tokens
   const visibleText = words.slice(0, visibleCount).join("");
@@ -118,8 +129,8 @@ const AnimatedMarkdown = memo(({
         {visibleText}
       </ReactMarkdown>
 
-      {/* Blinking cursor while animating */}
-      {visibleCount < words.length && (
+      {/* Blinking cursor — only while animating a new message */}
+      {animate && visibleCount < words.length && (
         <span className="inline-block w-[2px] h-[1.1em] bg-primary/80 align-middle ml-0.5 animate-[blink_0.7s_ease-in-out_infinite]" />
       )}
     </div>
