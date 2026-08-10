@@ -95,8 +95,8 @@ export default function Stage3({ finalResponse, isLoading }) {
               },
               table({ children }) {
                 return (
-                  <div className="my-6 w-full overflow-x-auto border-2 border-foreground brutal-shadow-sm">
-                    <table className="w-full text-sm text-left">{children}</table>
+                  <div className="my-6 w-full border-2 border-foreground brutal-shadow-sm">
+                    <table className="w-full text-sm text-left table-auto break-words">{children}</table>
                   </div>
                 );
               },
@@ -110,10 +110,10 @@ export default function Stage3({ finalResponse, isLoading }) {
                 return <tr className="hover:bg-secondary/50 transition-colors">{children}</tr>;
               },
               th({ children }) {
-                return <th className="px-4 py-3 whitespace-nowrap border-r-2 border-foreground last:border-r-0">{children}</th>;
+                return <th className="px-4 py-3 align-top border-r-2 border-foreground last:border-r-0 break-words">{children}</th>;
               },
               td({ children }) {
-                return <td className="px-4 py-3 align-top border-r-2 border-foreground/20 last:border-r-0">{children}</td>;
+                return <td className="px-4 py-3 align-top border-r-2 border-foreground/20 last:border-r-0 break-words">{children}</td>;
               },
             }}
           />

@@ -197,8 +197,8 @@ const MessageBubble = memo(({ msg, currentMode, theme }) => (
                           },
                           table({ children }) {
                             return (
-                              <div className="w-full max-w-full overflow-x-auto my-6 border-2 border-foreground brutal-shadow-sm block">
-                                <table className="w-full text-sm text-left min-w-max">{children}</table>
+                              <div className="w-full my-6 border-2 border-foreground brutal-shadow-sm block">
+                                <table className="w-full text-sm text-left table-auto break-words">{children}</table>
                               </div>
                             );
                           },
@@ -206,10 +206,10 @@ const MessageBubble = memo(({ msg, currentMode, theme }) => (
                             return <thead className="bg-secondary text-xs uppercase font-bold text-foreground border-b-2 border-foreground">{children}</thead>;
                           },
                           th({ children }) {
-                            return <th className="px-3 py-2 md:px-4 md:py-3 border-r-2 border-foreground last:border-r-0 whitespace-nowrap">{children}</th>;
+                            return <th className="px-3 py-2 md:px-4 md:py-3 border-r-2 border-foreground last:border-r-0 align-top">{children}</th>;
                           },
                           td({ children }) {
-                            return <td className="px-3 py-2 md:px-4 md:py-3 border-b-2 border-r-2 border-foreground/20 last:border-r-0">{children}</td>;
+                            return <td className="px-3 py-2 md:px-4 md:py-3 border-b-2 border-r-2 border-foreground/20 last:border-r-0 align-top break-words">{children}</td>;
                           },
                         }}
                       />

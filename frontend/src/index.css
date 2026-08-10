@@ -420,3 +420,20 @@
   0%, 100% { opacity: 1; }
   50% { opacity: 0; }
 }
+
+/* Tables: always wrap text vertically, never scroll horizontally */
+.animated-markdown table,
+.markdown-content table {
+  table-layout: auto;
+  width: 100%;
+  word-break: break-word;
+}
+
+.animated-markdown th,
+.animated-markdown td,
+.markdown-content th,
+.markdown-content td {
+  white-space: normal !important;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}

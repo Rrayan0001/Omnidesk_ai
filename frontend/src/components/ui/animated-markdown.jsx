@@ -70,6 +70,13 @@ const AnimatedMarkdown = memo(({
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={{
+          table({ children }) {
+            return (
+              <div className="w-full my-6 border-2 border-foreground brutal-shadow-sm block">
+                <table className="w-full text-sm text-left table-auto break-words">{children}</table>
+              </div>
+            );
+          },
           p({ children }) {
             return (
               <div className="mb-4 leading-loose tracking-wide font-medium text-sm md:text-base break-words text-justify">
