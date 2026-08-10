@@ -593,6 +593,41 @@ function Dashboard() {
     }
   };
 
+  const handleStop = () => {
+    if (currentConversationId) {
+      setLoadingStates(prev => ({ ...prev, [currentConversationId]: false }));
+    }
+    // Cancel animation frame and clear pending stream buffer
+    streamBufferRef.current.pendingChunks = '';
+    if (streamBufferRef.current.animationFrameId) {
+      cancelAnimationFrame(streamBufferRef.current.animationFrameId);
+      streamBufferRef.current.isProcessing = false;
+    }
+
+    // Clean up partial assistant message if it has no content yet
+    setCurrentConversation(prev => {
+      if (!prev) return prev;
+      const messages = [...prev.messages];
+      const lastMsgIndex = messages.length - 1;
+      const lastMsg = messages[lastMsgIndex];
+      if (lastMsg && lastMsg.role === 'assistant') {
+        const hasContent = lastMsg.stage3?.response || lastMsg.content;
+        if (!hasContent) {
+          // Remove empty assistant placeholder bubble
+          messages.splice(lastMsgIndex, 1);
+        } else {
+          // Mark response as stopped
+          messages[lastMsgIndex] = {
+            ...lastMsg,
+            metadata: { ...lastMsg.metadata, isStreaming: false, isSearching: false, stopped: true },
+            loading: null
+          };
+        }
+      }
+      return { ...prev, messages };
+    });
+  };
+
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (
@@ -615,6 +650,7 @@ function Dashboard() {
       <ChatInterface
         conversation={currentConversation}
         onSendMessage={handleSendMessage}
+        onStop={handleStop}
         isLoading={loadingStates[currentConversationId] || false}
         isSidebarOpen={isSidebarOpen}
         toggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}

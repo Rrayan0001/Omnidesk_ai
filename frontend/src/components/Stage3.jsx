@@ -2,6 +2,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { cn } from '@/lib/utils';
 import { TextShimmer } from '@/components/ui/text-shimmer';
+import { TextGenerateEffect } from '@/components/ui/text-generate-effect';
 import { CodeBlockCode } from '@/components/ui/code-block';
 import { useTheme } from "@/contexts/ThemeContext";
 
@@ -31,9 +32,12 @@ export default function Stage3({ finalResponse, isLoading }) {
           </h3>
         </div>
         <div className="bg-card border border-border/40 rounded-xl p-6 shadow-sm">
-          <TextShimmer className="text-sm font-sans">
-            The Chairman is synthesizing the final verdict...
-          </TextShimmer>
+          <TextGenerateEffect
+            words="The Chairman is synthesizing the final verdict..."
+            className="text-sm font-sans"
+            textClassName="text-muted-foreground text-sm font-medium"
+            duration={0.5}
+          />
         </div>
       </div>
     );

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, memo } from 'react';
-import { Send, Loader2, PanelLeft, Trash2, Sparkles, Bot, Users, Cpu, Image as ImageIcon, Sun, Moon, Upload, X, FileText, ImageIcon as FileImage, Globe, Copy, Check } from 'lucide-react';
+import { Send, Loader2, PanelLeft, Trash2, Sparkles, Bot, Users, Cpu, Image as ImageIcon, Sun, Moon, Upload, X, FileText, ImageIcon as FileImage, Globe, Copy, Check, Square } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useTheme } from "@/contexts/ThemeContext";
@@ -11,6 +11,7 @@ import Stage3 from './Stage3';
 import { cn } from '@/lib/utils';
 import { api } from '@/api';
 import { TextShimmer } from '@/components/ui/text-shimmer';
+import { TextGenerateEffect } from '@/components/ui/text-generate-effect';
 import { CodeBlockCode } from '@/components/ui/code-block';
 
 // Import chat models for display
@@ -286,6 +287,7 @@ const MessageBubble = memo(({ msg, currentMode, theme }) => (
 export default function ChatInterface({
   conversation,
   onSendMessage,
+  onStop,
   isLoading,
   toggleSidebar,
   onDeleteConversation,
@@ -301,6 +303,7 @@ export default function ChatInterface({
   const messagesEndRef = useRef(null);
   const textareaRef = useRef(null);
   const fileInputRef = useRef(null);
+  const lastSubmittedQueryRef = useRef('');
 
   // File upload state
   const [isUploading, setIsUploading] = useState(false);
@@ -329,10 +332,25 @@ export default function ChatInterface({
 
   const isSubmittingRef = useRef(false);
 
+  const handleStop = () => {
+    if (onStop) {
+      onStop();
+    }
+    // Restore the query that was submitted so user can edit or re-run
+    if (lastSubmittedQueryRef.current) {
+      setInput(lastSubmittedQueryRef.current);
+    }
+    isSubmittingRef.current = false;
+    setTimeout(() => {
+      textareaRef.current?.focus();
+    }, 50);
+  };
+
   const handleSubmit = async () => {
     const content = input.trim();
     if ((content || attachedFile) && !isLoading && !isSubmittingRef.current) {
       isSubmittingRef.current = true;
+      lastSubmittedQueryRef.current = content; // Save query to restore if stopped
       setInput(''); // Clear input immediately to prevent double-submit race conditions
 
       // If we have an attached file, send as file mode
@@ -504,7 +522,13 @@ export default function ChatInterface({
                   className="w-full h-full object-contain"
                 />
               </div>
-              <h1 className="text-xl md:text-3xl font-black font-display tracking-tight text-foreground uppercase text-center px-4">How can I help you today?</h1>
+              <TextGenerateEffect
+                words="How can I help you today?"
+                className="text-center px-4"
+                textClassName="text-xl md:text-3xl font-black font-display tracking-tight text-foreground uppercase"
+                duration={0.6}
+                filter={true}
+              />
             </div>
           ) : (
             <div className="max-w-5xl mx-auto p-2 md:p-8 space-y-6 md:space-y-8 pb-32">
@@ -615,19 +639,31 @@ export default function ChatInterface({
                 rows={1}
               />
 
-              {/* Send Button */}
-              <button
-                type="button"
-                onClick={handleSubmit}
-                disabled={isLoading || (!input.trim() && !attachedFile)}
-                className="shrink-0 p-2 h-10 w-10 flex items-center justify-center bg-primary text-primary-foreground border-2 border-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 brutal-shadow-sm hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-none"
-              >
-                {isLoading ? (
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                ) : (
-                  <Send className="w-5 h-5 ml-0.5" />
-                )}
-              </button>
+              {/* Send or Stop Button */}
+              {isLoading ? (
+                <button
+                  type="button"
+                  onClick={handleStop}
+                  className="shrink-0 p-2 h-10 w-10 flex items-center justify-center bg-destructive text-destructive-foreground border-2 border-foreground hover:bg-destructive/90 transition-all duration-200 brutal-shadow-sm hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-none cursor-pointer"
+                  title="Stop search & generation"
+                >
+                  <Square className="w-4 h-4 fill-current" />
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleSubmit}
+                  disabled={!input.trim() && !attachedFile}
+                  className="shrink-0 p-2 h-10 w-10 flex items-center justify-center bg-primary text-primary-foreground border-2 border-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 brutal-shadow-sm hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-none"
+                  title="Send Message"
+                >
+                  {isUploading ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <Send className="w-5 h-5 ml-0.5" />
+                  )}
+                </button>
+              )}
             </div>
             <div className="flex justify-between items-center mt-3 px-1">
               {uploadError && (

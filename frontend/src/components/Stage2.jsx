@@ -3,6 +3,7 @@ import ReactMarkdown from 'react-markdown';
 import { cn } from '@/lib/utils';
 
 import { TextShimmer } from '@/components/ui/text-shimmer';
+import { TextGenerateEffect } from '@/components/ui/text-generate-effect';
 import { CodeBlockCode } from '@/components/ui/code-block';
 import { useTheme } from "@/contexts/ThemeContext";
 
@@ -51,9 +52,12 @@ export default function Stage2({ rankings, labelToModel, aggregateRankings, isLo
           </h3>
         </div>
         <div className="bg-card border border-border/40 rounded-xl p-6 shadow-sm">
-          <TextShimmer className="text-sm font-sans">
-            Council members are reviewing and ranking responses...
-          </TextShimmer>
+          <TextGenerateEffect
+            words="Council members are reviewing and ranking responses..."
+            className="text-sm font-sans"
+            textClassName="text-muted-foreground text-sm font-medium"
+            duration={0.5}
+          />
         </div>
       </div>
     );
