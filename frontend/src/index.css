@@ -407,7 +407,16 @@
 
 .markdown-content p,
 .markdown-content li,
-.markdown-content blockquote {
+.markdown-content blockquote,
+.animated-markdown p,
+.animated-markdown li,
+.animated-markdown blockquote {
   text-align: justify;
   text-justify: inter-word;
+}
+
+/* Blinking cursor keyframe for AnimatedMarkdown */
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
 }

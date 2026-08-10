@@ -1,8 +1,7 @@
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
 import { cn } from '@/lib/utils';
 import { TextShimmer } from '@/components/ui/text-shimmer';
 import { TextGenerateEffect } from '@/components/ui/text-generate-effect';
+import AnimatedMarkdown from '@/components/ui/animated-markdown';
 import { CodeBlockCode } from '@/components/ui/code-block';
 import { useTheme } from "@/contexts/ThemeContext";
 
@@ -70,93 +69,54 @@ export default function Stage3({ finalResponse, isLoading }) {
             </div>
           </div>
 
-          <div className="markdown-content text-[15px] leading-relaxed text-foreground font-sans break-words overflow-wrap-anywhere overflow-x-hidden text-justify" style={{ wordWrap: 'break-word', overflowWrap: 'anywhere', maxWidth: '100%' }}>
-            <ReactMarkdown
-              remarkPlugins={[remarkGfm]}
-              components={{
-                code({ node, inline, className, children, ...props }) {
-                  const match = /language-(\w+)/.exec(className || '');
-                  const language = match ? match[1] : 'text';
-
-                  if (inline) {
-                    return (
-                      <code className={cn("bg-secondary px-1.5 py-0.5 border border-foreground text-sm font-mono text-primary font-bold", className)} {...props}>
-                        {children}
-                      </code>
-                    );
-                  }
-
+          <AnimatedMarkdown
+            content={responseText}
+            wordDelay={16}
+            components={{
+              code({ node, inline, className, children, ...props }) {
+                const match = /language-(\w+)/.exec(className || '');
+                const language = match ? match[1] : 'text';
+                if (inline) {
                   return (
-                    <div className="not-prose my-6 border-2 border-foreground brutal-shadow-sm bg-card">
-                      <CodeBlockCode
-                        code={String(children).replace(/\n$/, '')}
-                        language={language}
-                        theme={theme === 'dark' ? 'github-dark' : 'github-light'}
-                      />
-                    </div>
-                  );
-                },
-                table({ children }) {
-                  return (
-                    <div className="my-6 w-full overflow-x-auto border-2 border-foreground brutal-shadow-sm">
-                      <table className="w-full text-sm text-left">
-                        {children}
-                      </table>
-                    </div>
-                  );
-                },
-                thead({ children }) {
-                  return (
-                    <thead className="bg-secondary text-xs uppercase font-bold text-foreground border-b-2 border-foreground">
+                    <code className={cn("bg-secondary px-1.5 py-0.5 border border-foreground text-sm font-mono text-primary font-bold", className)} {...props}>
                       {children}
-                    </thead>
-                  );
-                },
-                tbody({ children }) {
-                  return <tbody className="divide-y-2 divide-foreground/20">{children}</tbody>;
-                },
-                tr({ children }) {
-                  return <tr className="hover:bg-secondary/50 transition-colors">{children}</tr>;
-                },
-                th({ children }) {
-                  return <th className="px-4 py-3 whitespace-nowrap border-r-2 border-foreground last:border-r-0">{children}</th>;
-                },
-                td({ children }) {
-                  return <td className="px-4 py-3 align-top border-r-2 border-foreground/20 last:border-r-0">{children}</td>;
-                },
-                h1({ children }) {
-                  return <h1 className="text-3xl font-black mt-8 mb-4 first:mt-0 font-display uppercase tracking-tight">{children}</h1>;
-                },
-                h2({ children }) {
-                  return <h2 className="text-2xl font-bold mt-6 mb-3 font-display uppercase">{children}</h2>;
-                },
-                h3({ children }) {
-                  return <h3 className="text-xl font-bold mt-5 mb-2 font-display uppercase">{children}</h3>;
-                },
-                ul({ children }) {
-                  return <ul className="list-disc list-outside ml-5 my-4 space-y-2 marker:text-primary marker:text-xl">{children}</ul>;
-                },
-                ol({ children }) {
-                  return <ol className="list-decimal list-outside ml-5 my-4 space-y-2 font-bold marker:text-primary">{children}</ol>;
-                },
-                li({ children }) {
-                  return <li className="pl-1 font-medium">{children}</li>;
-                },
-                p({ children }) {
-                  return <p className="my-4 last:mb-0 leading-loose">{children}</p>;
-                },
-                blockquote({ children }) {
-                  return (
-                    <blockquote className="border-l-4 border-primary pl-4 py-2 my-6 bg-secondary font-medium italic border-2 border-l-8 border-foreground brutal-shadow-sm">
-                      {children}
-                    </blockquote>
+                    </code>
                   );
                 }
-              }}
-            >
-              {responseText}
-            </ReactMarkdown>
-          </div>
+                return (
+                  <div className="not-prose my-6 border-2 border-foreground brutal-shadow-sm bg-card">
+                    <CodeBlockCode
+                      code={String(children).replace(/\n$/, '')}
+                      language={language}
+                      theme={theme === 'dark' ? 'github-dark' : 'github-light'}
+                    />
+                  </div>
+                );
+              },
+              table({ children }) {
+                return (
+                  <div className="my-6 w-full overflow-x-auto border-2 border-foreground brutal-shadow-sm">
+                    <table className="w-full text-sm text-left">{children}</table>
+                  </div>
+                );
+              },
+              thead({ children }) {
+                return <thead className="bg-secondary text-xs uppercase font-bold text-foreground border-b-2 border-foreground">{children}</thead>;
+              },
+              tbody({ children }) {
+                return <tbody className="divide-y-2 divide-foreground/20">{children}</tbody>;
+              },
+              tr({ children }) {
+                return <tr className="hover:bg-secondary/50 transition-colors">{children}</tr>;
+              },
+              th({ children }) {
+                return <th className="px-4 py-3 whitespace-nowrap border-r-2 border-foreground last:border-r-0">{children}</th>;
+              },
+              td({ children }) {
+                return <td className="px-4 py-3 align-top border-r-2 border-foreground/20 last:border-r-0">{children}</td>;
+              },
+            }}
+          />
         </div>
       </div>
     </div>

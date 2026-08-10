@@ -12,6 +12,7 @@ import { cn } from '@/lib/utils';
 import { api } from '@/api';
 import { TextShimmer } from '@/components/ui/text-shimmer';
 import { TextGenerateEffect } from '@/components/ui/text-generate-effect';
+import AnimatedMarkdown from '@/components/ui/animated-markdown';
 import { CodeBlockCode } from '@/components/ui/code-block';
 
 // Import chat models for display
@@ -157,72 +158,61 @@ const MessageBubble = memo(({ msg, currentMode, theme }) => (
                   </div>
                 ) : (
                   <>
-                    {/* Show raw text with cursor during streaming, markdown after */}
+                    {/* Streaming: raw text + blinking cursor */}
                     {msg.metadata?.isStreaming ? (
                       <div className="prose prose-sm max-w-none text-foreground leading-relaxed break-words overflow-hidden text-justify">
                         <div className="mb-4 leading-loose tracking-wide font-medium text-sm md:text-base break-words whitespace-pre-wrap text-justify">
                           {msg.stage3?.response || msg.content || ''}
-                          <span className="inline-block w-2 h-5 bg-primary ml-0.5 animate-pulse" />
+                          <span className="inline-block w-[2px] h-[1.1em] bg-primary/80 align-middle ml-0.5 animate-[blink_0.7s_ease-in-out_infinite]" />
                         </div>
                       </div>
                     ) : (
-                      <div className="prose prose-sm max-w-none text-foreground leading-relaxed break-words overflow-hidden text-justify markdown-content">
-                        <ReactMarkdown
-                          remarkPlugins={[remarkGfm]}
-                          components={{
-                            // Use div instead of p to avoid nesting issues with code blocks
-                            p({ children }) {
-                              return <div className="mb-4 leading-loose tracking-wide font-medium text-sm md:text-base break-words text-justify">{children}</div>;
-                            },
-                            li({ children }) {
-                              return <li className="pl-1 font-medium text-justify mb-1">{children}</li>;
-                            },
-                            table({ children }) {
+                      /* Completed response: elegant word-by-word animated reveal */
+                      <AnimatedMarkdown
+                        content={msg.stage3?.response || msg.content || ''}
+                        wordDelay={18}
+                        components={{
+                          code({ node, inline, className, children, ...props }) {
+                            const match = /language-(\w+)/.exec(className || '');
+                            const language = match ? match[1] : 'text';
+                            if (inline) {
                               return (
-                                <div className="w-full max-w-full overflow-x-auto my-6 border-2 border-foreground brutal-shadow-sm block">
-                                  <table className="w-full text-sm text-left min-w-max">{children}</table>
-                                </div>
-                              );
-                            },
-                            thead({ children }) {
-                              return <thead className="bg-secondary text-xs uppercase font-bold text-foreground border-b-2 border-foreground">{children}</thead>;
-                            },
-                            th({ children }) {
-                              return <th className="px-3 py-2 md:px-4 md:py-3 border-r-2 border-foreground last:border-r-0 whitespace-nowrap">{children}</th>;
-                            },
-                            td({ children }) {
-                              return <td className="px-3 py-2 md:px-4 md:py-3 border-b-2 border-r-2 border-foreground/20 last:border-r-0 max-w-[200px] truncate md:max-w-none md:whitespace-normal">{children}</td>;
-                            },
-                            code({ node, inline, className, children, ...props }) {
-                              const match = /language-(\w+)/.exec(className || '');
-                              const language = match ? match[1] : 'text';
-
-                              if (inline) {
-                                return (
-                                  <code className={cn("bg-secondary px-1.5 py-0.5 border border-foreground text-xs md:text-sm font-mono text-primary font-bold break-all", className)} {...props}>
-                                    {children}
-                                  </code>
-                                );
-                              }
-
-                              return (
-                                <div className="not-prose my-6 border-2 border-foreground brutal-shadow-sm bg-card w-full max-w-full overflow-hidden">
-                                  <div className="w-full overflow-x-auto">
-                                    <CodeBlockCode
-                                      code={String(children).replace(/\n$/, '')}
-                                      language={language}
-                                      theme={theme === 'dark' ? 'github-dark' : 'github-light'}
-                                      className="whitespace-pre text-xs md:text-sm"
-                                    />
-                                  </div>
-                                </div>
+                                <code className={cn("bg-secondary px-1.5 py-0.5 border border-foreground text-xs md:text-sm font-mono text-primary font-bold break-all", className)} {...props}>
+                                  {children}
+                                </code>
                               );
                             }
-                          }}
-                        >
-                          {msg.stage3?.response || msg.content || ''}
-                        </ReactMarkdown>
-                      </div>
+                            return (
+                              <div className="not-prose my-6 border-2 border-foreground brutal-shadow-sm bg-card w-full max-w-full overflow-hidden">
+                                <div className="w-full overflow-x-auto">
+                                  <CodeBlockCode
+                                    code={String(children).replace(/\n$/, '')}
+                                    language={language}
+                                    theme={theme === 'dark' ? 'github-dark' : 'github-light'}
+                                    className="whitespace-pre text-xs md:text-sm"
+                                  />
+                                </div>
+                              </div>
+                            );
+                          },
+                          table({ children }) {
+                            return (
+                              <div className="w-full max-w-full overflow-x-auto my-6 border-2 border-foreground brutal-shadow-sm block">
+                                <table className="w-full text-sm text-left min-w-max">{children}</table>
+                              </div>
+                            );
+                          },
+                          thead({ children }) {
+                            return <thead className="bg-secondary text-xs uppercase font-bold text-foreground border-b-2 border-foreground">{children}</thead>;
+                          },
+                          th({ children }) {
+                            return <th className="px-3 py-2 md:px-4 md:py-3 border-r-2 border-foreground last:border-r-0 whitespace-nowrap">{children}</th>;
+                          },
+                          td({ children }) {
+                            return <td className="px-3 py-2 md:px-4 md:py-3 border-b-2 border-r-2 border-foreground/20 last:border-r-0">{children}</td>;
+                          },
+                        }}
+                      />
                     )}
                     {/* Assistant message footer: copy + timestamp */}
                     <div className="flex items-center gap-2 mt-2 pt-2 border-t border-foreground/10">
