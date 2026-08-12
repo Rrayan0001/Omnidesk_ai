@@ -20,23 +20,27 @@ export async function searchGoogle(query, numResults = 5) {
     }
 
     try {
+        const cleanQuery = (query || '').trim();
+        if (!cleanQuery) return [];
+
         const params = new URLSearchParams({
-            key: GOOGLE_SEARCH_API_KEY,
-            cx: GOOGLE_SEARCH_CX,
-            q: query,
+            key: GOOGLE_SEARCH_API_KEY.trim(),
+            cx: GOOGLE_SEARCH_CX.trim(),
+            q: cleanQuery,
             num: Math.min(numResults, 10).toString(),
         });
 
         const response = await fetch(`${GOOGLE_SEARCH_URL}?${params}`);
 
         if (!response.ok) {
-            throw new Error(`Search API error: ${response.status}`);
+            console.warn(`Google Search API returned ${response.status} (invalid key or CX). Continuing without web search results.`);
+            return [];
         }
 
         const data = await response.json();
         return processSearchResults(data.items || []);
     } catch (error) {
-        console.error('Google Search error:', error);
+        console.warn('Google Search error, continuing without web search:', error);
         return [];
     }
 }

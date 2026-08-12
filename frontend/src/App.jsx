@@ -304,11 +304,12 @@ function Dashboard() {
             console.log('[DEBUG] Last message before update:', JSON.stringify(lastMsg, null, 2));
             if (lastMsg && lastMsg.role === 'assistant') {
               console.log('[DEBUG] Updating assistant message with response');
+              const finalResponse = event.data.response || "Sorry, I was unable to generate a response. Please check your network connection or try sending your prompt again.";
               // Create a NEW message object (immutable update) to trigger React re-render
               messages[lastMsgIndex] = {
                 ...lastMsg,
-                stage3: event.data,
-                content: event.data.response,
+                stage3: { ...event.data, response: finalResponse },
+                content: finalResponse,
                 metadata: { mode: 'chat', model: event.data.model, isStreaming: false, wasStreamed: true },
                 loading: null,
                 _isNew: true,  // ← triggers word-reveal animation once, never on reload
@@ -349,6 +350,25 @@ function Dashboard() {
 
         case 'error':
           console.error('Stream error:', event.message);
+          setCurrentConversation((prev) => {
+            if (prev?.id !== conversationId) return prev;
+            const messages = [...prev.messages];
+            const lastMsgIndex = messages.length - 1;
+            const lastMsg = messages[lastMsgIndex];
+            if (lastMsg && lastMsg.role === 'assistant') {
+              const errText = `⚠️ Error: ${event.message || 'Failed to complete response.'}`;
+              messages[lastMsgIndex] = {
+                ...lastMsg,
+                stage3: { response: errText },
+                content: errText,
+                metadata: { mode: 'chat', error: true, isStreaming: false },
+                loading: null,
+                _isNew: true,
+              };
+            }
+            return { ...prev, messages };
+          });
+          setLoadingStates(prev => ({ ...prev, [conversationId]: false }));
           break;
 
         default:
